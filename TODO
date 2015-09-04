@@ -1,0 +1,13 @@
+1) Handle signals.
+
+2) Better handle error conditions to be sure that events won't be
+   lost.
+
+3) Test support for PCIe AER trace records.
+
+4) Better parse mce trace records.
+
+5) Make it work fine with offline CPUs.
+
+6) Handle CPU hotplugs.
+
