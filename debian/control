@@ -2,14 +2,14 @@ Source: rasdaemon
 Section: admin
 Priority: optional
 Maintainer: Al Stone <ahs3@debian.org>
-Build-Depends: debhelper (>= 9), autotools-dev
+Build-Depends: debhelper (>= 9), autotools-dev, libsqlite3-dev
 Standards-Version: 3.9.6
 Homepage: https://apps.fedorahosted.org/packages/rasdaemon
 Vcs-git: https://git.fedorahosted.org/git/rasdaemon.git
 
 Package: rasdaemon
 Architecture: any
-Depends: ${shlibs:Depends}, ${misc:Depends}
+Depends: ${shlibs:Depends}, ${misc:Depends}, sqlite3
 Description: utility to receive RAS error tracings
  rasdaemon is a RAS (Reliability, Availability and Serviceability) logging
  tool.  It currently records memory errors, using the EDAC tracing events.
