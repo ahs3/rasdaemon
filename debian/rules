@@ -28,6 +28,7 @@ override_dh_auto_configure:
 	--enable-mce --enable-aer --enable-sqlite3 --enable-extlog \
 	--enable-abrt-report
 
-
-
+override_dh_install:
+	dh_install
+	rm -rf $(DESTDIR)/usr/include
 
