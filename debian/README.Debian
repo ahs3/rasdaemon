@@ -1,6 +1,8 @@
 rasdaemon for Debian
 --------------------
 
-<possible notes regarding this package - if none, delete this file>
+There are some very minor changes for Debian that are reflected in the
+patches.  The only big one so far is moving rasdaemon.1 to rasdaemon.8,
+which is where it seems to belong.
 
- -- ahs3 <ahs3@debian.org>  Fri, 04 Sep 2015 16:22:59 -0600
+ -- Al Stone <ahs3@debian.org>  Fri, 04 Sep 2015 16:22:59 -0600

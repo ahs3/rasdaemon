@@ -1,0 +1,149 @@
+diff -Naur rasdaemon-0.5.6/man/Makefile.am rasdaemon-0.5.6.fixes/man/Makefile.am
+--- rasdaemon-0.5.6/man/Makefile.am	2015-09-11 15:14:05.000000000 -0600
++++ rasdaemon-0.5.6.fixes/man/Makefile.am	2015-09-11 17:30:15.774417171 -0600
+@@ -1,2 +1,2 @@
+-man_MANS = ras-mc-ctl.8 rasdaemon.1
++man_MANS = ras-mc-ctl.8 rasdaemon.8
+ 
+diff -Naur rasdaemon-0.5.6/man/rasdaemon.1.in rasdaemon-0.5.6.fixes/man/rasdaemon.1.in
+--- rasdaemon-0.5.6/man/rasdaemon.1.in	2015-09-11 15:14:05.000000000 -0600
++++ rasdaemon-0.5.6.fixes/man/rasdaemon.1.in	1969-12-31 17:00:00.000000000 -0700
+@@ -1,67 +0,0 @@
+-.\"****************************************************************************
+-.\" $Id$
+-.\"****************************************************************************
+-.\"Copyright (c) 2013 Mauro Carvalho Chehab <mchehab@redhat.com>
+-.\"
+-.\" This is free software; you can redistribute it and/or modify it
+-.\" under the terms of the GNU General Public License as published by
+-.\" the Free Software Foundation; either version 2 of the License, or
+-.\" (at your option) any later version.
+-.\"
+-.\" This is distributed in the hope that it will be useful, but WITHOUT
+-.\" ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+-.\" FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
+-.\" for more details.
+-.\"
+-.\" You should have received a copy of the GNU General Public License along
+-.\" with this program; if not, write to the Free Software Foundation, Inc.,
+-.\" 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA.
+-.\"****************************************************************************
+-
+-.TH RASDAEMON 8 "@META_DATE@" "@META_ALIAS@" "RAS memory controller admin utility"
+-
+-.SH NAME
+-rasdaemon \- RAS daemon to log the RAS events.
+-
+-.SH SYNOPSIS
+-.B rasdaemon
+-[\fIOPTION\fR]...
+-
+-.SH DESCRIPTION
+-
+-The \fBrasdaemon\fR program is a daemon which monitors the platform
+-Reliablity, Availability and Serviceability (RAS) reports from the
+-Linux kernel trace events. These trace events are logged in
+-/sys/kernel/debug/tracing, reporting them via syslog/journald.
+-
+-.SH OPTIONS
+-.TP
+-.BI "--usage"
+-Display a brief usage message and exit.
+-.TP
+-.BI "--help"
+-Display a help message and exit.
+-.TP
+-.BI "--disable"
+-Disable RAS tracing events and exit.
+-.TP
+-.BI "--enable"
+-Enable RAS tracing events and exit.
+-.TP
+-.BI "--foreground"
+-Executes in foreground, printing the events at console. Useful for testing it,
+-and to be used by systemd or Unix System V respan.
+-If not specified, the program runs in daemon mode.
+-.TP
+-.BI "--record"
+-Record RAS events via Sqlite3. The Sqlite3 database has the benefit of
+-keeping a persistent record of the RAS events. This feature is used with
+-the ras-mc-ctl utility. Note that rasdaemon may be compiled without this
+-feature.
+-.TP
+-.BI "--version"
+-Print the program version and exit.
+-
+-.SH SEE ALSO
+-\fBras-mc-ctl\fR(8)
+-
+diff -Naur rasdaemon-0.5.6/man/rasdaemon.8.in rasdaemon-0.5.6.fixes/man/rasdaemon.8.in
+--- rasdaemon-0.5.6/man/rasdaemon.8.in	1969-12-31 17:00:00.000000000 -0700
++++ rasdaemon-0.5.6.fixes/man/rasdaemon.8.in	2015-09-11 17:29:31.802775207 -0600
+@@ -0,0 +1,67 @@
++.\"****************************************************************************
++.\" $Id$
++.\"****************************************************************************
++.\"Copyright (c) 2013 Mauro Carvalho Chehab <mchehab@redhat.com>
++.\"
++.\" This is free software; you can redistribute it and/or modify it
++.\" under the terms of the GNU General Public License as published by
++.\" the Free Software Foundation; either version 2 of the License, or
++.\" (at your option) any later version.
++.\"
++.\" This is distributed in the hope that it will be useful, but WITHOUT
++.\" ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
++.\" FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
++.\" for more details.
++.\"
++.\" You should have received a copy of the GNU General Public License along
++.\" with this program; if not, write to the Free Software Foundation, Inc.,
++.\" 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA.
++.\"****************************************************************************
++
++.TH RASDAEMON 8 "@META_DATE@" "@META_ALIAS@" "RAS memory controller admin utility"
++
++.SH NAME
++rasdaemon \- RAS daemon to log the RAS events.
++
++.SH SYNOPSIS
++.B rasdaemon
++[\fIOPTION\fR]...
++
++.SH DESCRIPTION
++
++The \fBrasdaemon\fR program is a daemon which monitors the platform
++Reliablity, Availability and Serviceability (RAS) reports from the
++Linux kernel trace events. These trace events are logged in
++/sys/kernel/debug/tracing, reporting them via syslog/journald.
++
++.SH OPTIONS
++.TP
++.BI "--usage"
++Display a brief usage message and exit.
++.TP
++.BI "--help"
++Display a help message and exit.
++.TP
++.BI "--disable"
++Disable RAS tracing events and exit.
++.TP
++.BI "--enable"
++Enable RAS tracing events and exit.
++.TP
++.BI "--foreground"
++Executes in foreground, printing the events at console. Useful for testing it,
++and to be used by systemd or Unix System V respan.
++If not specified, the program runs in daemon mode.
++.TP
++.BI "--record"
++Record RAS events via Sqlite3. The Sqlite3 database has the benefit of
++keeping a persistent record of the RAS events. This feature is used with
++the ras-mc-ctl utility. Note that rasdaemon may be compiled without this
++feature.
++.TP
++.BI "--version"
++Print the program version and exit.
++
++.SH SEE ALSO
++\fBras-mc-ctl\fR(8)
++
