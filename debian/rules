@@ -31,7 +31,7 @@ override_dh_auto_configure:
 
 override_dh_install:
 	dh_install
-	rm -rf $(DESTDIR)/usr/include
+	rm -rf $(CURDIR)/debian/rasdaemon/usr/include
 
 override_dh_clean:
 	dh_autoreconf_clean
