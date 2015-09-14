@@ -3,7 +3,7 @@ Section: admin
 Priority: optional
 Maintainer: Al Stone <ahs3@debian.org>
 Build-Depends: debhelper (>= 9), autotools-dev, quilt, libsqlite3-dev, 
- libgettextpo-dev
+ libgettextpo-dev, dh-systemd
 Standards-Version: 3.9.6
 Homepage: https://apps.fedorahosted.org/packages/rasdaemon
 Vcs-git: https://git.fedorahosted.org/git/rasdaemon.git
