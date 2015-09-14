@@ -1,5 +1,5 @@
 rasdaemon (0.5.6-1) unstable; urgency=low
 
-  * Initial release (Closes: #nnnn)  <nnnn is the bug number of your ITP>
+  * Initial release (Closes: #799015)
 
  -- Al Stone <ahs3@debian.org>  Fri, 04 Sep 2015 16:22:59 -0600
