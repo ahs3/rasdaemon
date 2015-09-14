@@ -147,3 +147,15 @@ diff -Naur rasdaemon-0.5.6/man/rasdaemon.8.in rasdaemon-0.5.6.fixes/man/rasdaemo
 +.SH SEE ALSO
 +\fBras-mc-ctl\fR(8)
 +
+diff -Naur rasdaemon-0.5.6/configure.ac rasdaemon-0.5.6.fixes/configure.ac
+--- rasdaemon-0.5.6/configure.ac	2015-09-11 17:56:04.000000000 -0600
++++ rasdaemon-0.5.6.fixes/configure.ac	2015-09-13 19:47:24.836957290 -0600
+@@ -15,7 +15,7 @@
+ 	libtrace/Makefile
+ 	man/Makefile
+ 	man/ras-mc-ctl.8
+-	man/rasdaemon.1
++	man/rasdaemon.8
+ 	misc/rasdaemon.spec
+ 	util/Makefile
+ 	util/ras-mc-ctl
