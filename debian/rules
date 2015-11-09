@@ -33,3 +33,9 @@ override_dh_install:
 	dh_install
 	rm -rf $(CURDIR)/debian/rasdaemon/usr/include
 
+override_dh_installdeb:
+	dh_systemd_enable rasdaemon.service
+	dh_systemd_enable ras-mc-ctl.service
+	dh_systemd_start rasdaemon.service
+	dh_systemd_start ras-mc-ctl.service
+	dh_installdeb
