@@ -1,2 +1,2 @@
-misc/rasdaemon.service	lib/systemd/system
-misc/ras-mc-ctl.service	lib/systemd/system
+misc/rasdaemon.service	/lib/systemd/system
+misc/ras-mc-ctl.service	/lib/systemd/system
