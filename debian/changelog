@@ -1,3 +1,11 @@
+rasdaemon (0.5.6-2) unstable; urgency=medium
+
+  * Closes: #806412 -- add in build-depends on dh-autoreconf
+  * Closes: #806231 -- add in build-depends on autoconf
+  * Test properly with pbuilder this time
+
+ -- ahs3 <ahs3@debian.org>  Mon, 07 Dec 2015 19:22:01 -0700
+
 rasdaemon (0.5.6-1) unstable; urgency=low
 
   * Initial release (Closes: #799015)
