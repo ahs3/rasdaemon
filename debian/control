@@ -6,7 +6,7 @@ Build-Depends: debhelper (>= 9), autotools-dev, quilt, libsqlite3-dev,
  libgettextpo-dev, dh-systemd, dh-autoreconf, autoconf
 Standards-Version: 3.9.8
 Homepage: https://apps.fedorahosted.org/packages/rasdaemon
-Vcs-git: https://git.fedorahosted.org/git/rasdaemon.git
+Vcs-git: https://github.com/ahs3/rasdaemon.git
 
 Package: rasdaemon
 Architecture: any
