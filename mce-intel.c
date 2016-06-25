@@ -397,6 +397,16 @@ int parse_intel_event(struct ras_events *ras, struct mce_event *e)
 		break;
 	case CPU_HASWELL_EPEX:
 		hsw_decode_model(ras, e);
+		break;
+	case CPU_KNIGHTS_LANDING:
+		knl_decode_model(ras, e);
+		break;
+	case CPU_BROADWELL_DE:
+		broadwell_de_decode_model(ras, e);
+		break;
+	case CPU_BROADWELL_EPEX:
+		broadwell_epex_decode_model(ras, e);
+		break;
 	default:
 		break;
 	}
@@ -460,6 +470,7 @@ int set_intel_imc_log(enum cputype cputype, unsigned ncpus)
 	case CPU_SANDY_BRIDGE_EP:
 	case CPU_IVY_BRIDGE_EPEX:
 	case CPU_HASWELL_EPEX:
+	case CPU_KNIGHTS_LANDING:
 		msr = 0x17f;	/* MSR_ERROR_CONTROL */
 		bit = 0x2;	/* MemError Log Enable */
 		break;
