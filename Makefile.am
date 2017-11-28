@@ -24,6 +24,12 @@ endif
 if WITH_AER
    rasdaemon_SOURCES += ras-aer-handler.c
 endif
+if WITH_NON_STANDARD
+   rasdaemon_SOURCES += ras-non-standard-handler.c
+endif
+if WITH_ARM
+   rasdaemon_SOURCES += ras-arm-handler.c
+endif
 if WITH_MCE
    rasdaemon_SOURCES += ras-mce-handler.c mce-intel.c mce-amd-k8.c \
 			mce-intel-p4-p6.c mce-intel-nehalem.c \
@@ -38,11 +44,14 @@ endif
 if WITH_ABRT_REPORT
    rasdaemon_SOURCES += ras-report.c
 endif
+if WITH_HISI_NS_DECODE
+   rasdaemon_SOURCES += non-standard-hisi_hip07.c
+endif
 rasdaemon_LDADD = -lpthread $(SQLITE3_LIBS) libtrace/libtrace.a
 
 include_HEADERS = config.h  ras-events.h  ras-logger.h  ras-mc-handler.h \
 		  ras-aer-handler.h ras-mce-handler.h ras-record.h bitfield.h ras-report.h \
-		  ras-extlog-handler.h
+		  ras-extlog-handler.h ras-arm-handler.h ras-non-standard-handler.h
 
 # This rule can't be called with more than one Makefile job (like make -j8)
 # I can't figure out a way to fix that
@@ -64,7 +73,7 @@ rpmlint:
 	rpmlint misc/@PACKAGE@.spec `rpm --eval %{_topdir}`/SRPMS/@PACKAGE@-@PACKAGE_VERSION@*.src.rpm `rpm --eval %{_topdir}`/RPMS/*/@PACKAGE@-@PACKAGE_VERSION@*.rpm
 
 upload:
-	scp `rpm --eval %{_topdir}`/SRPMS/@PACKAGE@-@PACKAGE_VERSION@*.src.rpm @PACKAGE@-@PACKAGE_VERSION@.tar.bz2 misc/rasdaemon.spec fedorapeople.org:public_html
+	scp `rpm --eval %{_topdir}`/SRPMS/@PACKAGE@-@PACKAGE_VERSION@*.src.rpm @PACKAGE@-@PACKAGE_VERSION@.tar.bz2 misc/rasdaemon.spec www.infradead.org:public_html/rasdaemon
 
 # custom target
 install-data-local:

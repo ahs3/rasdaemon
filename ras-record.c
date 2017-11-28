@@ -1,5 +1,6 @@
 /*
  * Copyright (C) 2013 Mauro Carvalho Chehab <mchehab@redhat.com>
+ * Copyright (c) 2016, The Linux Foundation. All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -150,6 +151,109 @@ int ras_store_aer_event(struct ras_events *ras, struct ras_aer_event *ev)
 	if (rc != SQLITE_OK && rc != SQLITE_DONE)
 		log(TERM, LOG_ERR,
 		    "Failed reset aer_event on sqlite: error = %d\n",
+		    rc);
+	log(TERM, LOG_INFO, "register inserted at db\n");
+
+	return rc;
+}
+#endif
+
+/*
+ * Table and functions to handle ras:non standard
+ */
+
+#ifdef HAVE_NON_STANDARD
+static const struct db_fields non_standard_event_fields[] = {
+		{ .name="id",			.type="INTEGER PRIMARY KEY" },
+		{ .name="timestamp",		.type="TEXT" },
+		{ .name="sec_type",		.type="BLOB" },
+		{ .name="fru_id",		.type="BLOB" },
+		{ .name="fru_text",		.type="TEXT" },
+		{ .name="severity",		.type="TEXT" },
+		{ .name="error",		.type="BLOB" },
+};
+
+static const struct db_table_descriptor non_standard_event_tab = {
+	.name = "non_standard_event",
+	.fields = non_standard_event_fields,
+	.num_fields = ARRAY_SIZE(non_standard_event_fields),
+};
+
+int ras_store_non_standard_record(struct ras_events *ras, struct ras_non_standard_event *ev)
+{
+	int rc;
+	struct sqlite3_priv *priv = ras->db_priv;
+
+	if (!priv || !priv->stmt_non_standard_record)
+		return 0;
+	log(TERM, LOG_INFO, "non_standard_event store: %p\n", priv->stmt_non_standard_record);
+
+	sqlite3_bind_text (priv->stmt_non_standard_record,  1, ev->timestamp, -1, NULL);
+	sqlite3_bind_blob (priv->stmt_non_standard_record,  2, ev->sec_type, -1, NULL);
+	sqlite3_bind_blob (priv->stmt_non_standard_record,  3, ev->fru_id, 16, NULL);
+	sqlite3_bind_text (priv->stmt_non_standard_record,  4, ev->fru_text, -1, NULL);
+	sqlite3_bind_text (priv->stmt_non_standard_record,  5, ev->severity, -1, NULL);
+	sqlite3_bind_blob (priv->stmt_non_standard_record,  6, ev->error, ev->length, NULL);
+
+	rc = sqlite3_step(priv->stmt_non_standard_record);
+	if (rc != SQLITE_OK && rc != SQLITE_DONE)
+		log(TERM, LOG_ERR,
+		    "Failed to do non_standard_event step on sqlite: error = %d\n", rc);
+	rc = sqlite3_reset(priv->stmt_non_standard_record);
+	if (rc != SQLITE_OK && rc != SQLITE_DONE)
+		log(TERM, LOG_ERR,
+		    "Failed reset non_standard_event on sqlite: error = %d\n", rc);
+	log(TERM, LOG_INFO, "register inserted at db\n");
+
+	return rc;
+}
+#endif
+
+/*
+ * Table and functions to handle ras:arm
+ */
+
+#ifdef HAVE_ARM
+static const struct db_fields arm_event_fields[] = {
+		{ .name="id",			.type="INTEGER PRIMARY KEY" },
+		{ .name="timestamp",		.type="TEXT" },
+		{ .name="error_count",		.type="INTEGER" },
+		{ .name="affinity",		.type="INTEGER" },
+		{ .name="mpidr",		.type="INTEGER" },
+		{ .name="running_state",	.type="INTEGER" },
+		{ .name="psci_state",		.type="INTEGER" },
+};
+
+static const struct db_table_descriptor arm_event_tab = {
+	.name = "arm_event",
+	.fields = arm_event_fields,
+	.num_fields = ARRAY_SIZE(arm_event_fields),
+};
+
+int ras_store_arm_record(struct ras_events *ras, struct ras_arm_event *ev)
+{
+	int rc;
+	struct sqlite3_priv *priv = ras->db_priv;
+
+	if (!priv || !priv->stmt_arm_record)
+		return 0;
+	log(TERM, LOG_INFO, "arm_event store: %p\n", priv->stmt_arm_record);
+
+	sqlite3_bind_text (priv->stmt_arm_record,  1,  ev->timestamp, -1, NULL);
+	sqlite3_bind_int  (priv->stmt_arm_record,  2,  ev->error_count);
+	sqlite3_bind_int  (priv->stmt_arm_record,  3,  ev->affinity);
+	sqlite3_bind_int  (priv->stmt_arm_record,  4,  ev->mpidr);
+	sqlite3_bind_int  (priv->stmt_arm_record,  5,  ev->running_state);
+	sqlite3_bind_int  (priv->stmt_arm_record,  6,  ev->psci_state);
+
+	rc = sqlite3_step(priv->stmt_arm_record);
+	if (rc != SQLITE_OK && rc != SQLITE_DONE)
+		log(TERM, LOG_ERR,
+		    "Failed to do arm_event step on sqlite: error = %d\n", rc);
+	rc = sqlite3_reset(priv->stmt_arm_record);
+	if (rc != SQLITE_OK && rc != SQLITE_DONE)
+		log(TERM, LOG_ERR,
+		    "Failed reset arm_event on sqlite: error = %d\n",
 		    rc);
 	log(TERM, LOG_INFO, "register inserted at db\n");
 
@@ -448,6 +552,20 @@ int ras_mc_event_opendb(unsigned cpu, struct ras_events *ras)
 	if (rc == SQLITE_OK)
 		rc = ras_mc_prepare_stmt(priv, &priv->stmt_mce_record,
 					 &mce_record_tab);
+#endif
+
+#ifdef HAVE_NON_STANDARD
+	rc = ras_mc_create_table(priv, &non_standard_event_tab);
+	if (rc == SQLITE_OK)
+		rc = ras_mc_prepare_stmt(priv, &priv->stmt_non_standard_record,
+					&non_standard_event_tab);
+#endif
+
+#ifdef HAVE_ARM
+	rc = ras_mc_create_table(priv, &arm_event_tab);
+	if (rc == SQLITE_OK)
+		rc = ras_mc_prepare_stmt(priv, &priv->stmt_arm_record,
+					&arm_event_tab);
 #endif
 
 		ras->db_priv = priv;
