@@ -1,3 +1,2 @@
-mce_snprintf.patch
 mv-manpage.patch
 systemd-targets.patch
