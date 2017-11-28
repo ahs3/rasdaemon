@@ -1,8 +1,9 @@
 rasdaemon (0.6.0-1) unstable; urgency=medium
 
-  * Update to 0.6.0 upstream.
+  * Closes: #879632 -- Update to 0.6.0 upstream.
   * Update watch file to point to relocated upstream.
   * Refresh patches to remove already accepted changes.
+  * Closes: #869697 -- add dependency on libdbd-sqlite3-perl
 
  -- Al Stone <ahs3@debian.org>  Mon, 27 Nov 2017 18:33:18 -0700
 
