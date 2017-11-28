@@ -1,6 +1,6 @@
 Format: https://www.debian.org/doc/packaging-manuals/copyright-format/1.0/
 Upstream-Name: rasdaemon
-Source: https://git.fedorahosted.org/git/rasdaemon.git
+Source: https://git.infradead.org/users/mchehab/rasdaemon.git
 
 Files: *
 Copyright: 2015 Mauro Carvalho Chehab <mchehab@redhat.com>
