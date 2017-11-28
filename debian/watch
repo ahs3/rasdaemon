@@ -1,2 +1,2 @@
-version=3
-https://git.fedorahosted.org/cgit/rasdaemon.git /cgit/rasdaemon.git/snapshot/rasdaemon-(\d\.\d\.\d)\.tar\.gz
+version=4
+https://www.infradead.org/~mchehab/rasdaemon/rasdaemon-(\d\.\d\.\d)\.tar\.bz2
