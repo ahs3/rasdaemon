@@ -9,6 +9,12 @@
 /* "have ARM events collect" */
 #undef HAVE_ARM
 
+/* "have devlink health events collect" */
+#undef HAVE_DEVLINK
+
+/* "have disk I/O errors collect" */
+#undef HAVE_DISKERROR
+
 /* Define to 1 if you have the <dlfcn.h> header file. */
 #undef HAVE_DLFCN_H
 

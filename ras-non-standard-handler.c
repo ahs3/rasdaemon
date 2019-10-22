@@ -160,30 +160,33 @@ int ras_non_standard_event_handler(struct trace_seq *s,
 	ev.error = pevent_get_field_raw(s, event, "buf", record, &len, 1);
 	if(!ev.error)
 		return -1;
-	len = ev.length;
-	i = 0;
-	line_count = 0;
-	trace_seq_printf(s, " error:\n  %08x: ", i);
-	while(len >= 4) {
-		print_le_hex(s, ev.error, i);
-		i+=4;
-		len-=4;
-		if(++line_count == 4) {
-			trace_seq_printf(s, "\n  %08x: ", i);
-			line_count = 0;
-		} else
-			trace_seq_printf(s, " ");
-	}
 
 	for (count = 0; count < dec_tab_count && !dec_done; count++) {
 		dec_tab = ns_dec_tab[count];
-		for (i = 0; i < dec_tab[0].len; i++) {
+		for (i = 0; dec_tab[i].decode; i++) {
 			if (uuid_le_cmp(ev.sec_type,
 					dec_tab[i].sec_type) == 0) {
-				dec_tab[i].decode(s, ev.error);
+				dec_tab[i].decode(ras, &dec_tab[i], s, &ev);
 				dec_done = true;
 				break;
 			}
+		}
+	}
+
+	if (!dec_done) {
+		len = ev.length;
+		i = 0;
+		line_count = 0;
+		trace_seq_printf(s, " error:\n  %08x: ", i);
+		while (len >= 4) {
+			print_le_hex(s, ev.error, i);
+			i += 4;
+			len -= 4;
+			if (++line_count == 4) {
+				trace_seq_printf(s, "\n  %08x: ", i);
+				line_count = 0;
+			} else
+				trace_seq_printf(s, " ");
 		}
 	}
 

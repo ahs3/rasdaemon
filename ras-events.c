@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2013 Mauro Carvalho Chehab <mchehab@redhat.com>
+ * Copyright (C) 2013 Mauro Carvalho Chehab <mchehab+redhat@kernel.org>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -33,6 +33,8 @@
 #include "ras-arm-handler.h"
 #include "ras-mce-handler.h"
 #include "ras-extlog-handler.h"
+#include "ras-devlink-handler.h"
+#include "ras-diskerror-handler.h"
 #include "ras-record.h"
 #include "ras-logger.h"
 
@@ -218,11 +220,50 @@ int toggle_ras_mc_event(int enable)
 	rc |= __toggle_ras_mc_event(ras, "ras", "arm_event", enable);
 #endif
 
+#ifdef HAVE_DEVLINK
+	rc |= __toggle_ras_mc_event(ras, "devlink", "devlink_health_report", enable);
+#endif
+
+#ifdef HAVE_DISKERROR
+	rc |= __toggle_ras_mc_event(ras, "block", "block_rq_complete", enable);
+#endif
+
 free_ras:
 	free(ras);
 	return rc;
 }
 
+/*
+ * Set kernel filter. libtrace doesn't provide an API for setting filters
+ * in kernel, we have to implement it here.
+ */
+static int filter_ras_mc_event(struct ras_events *ras, char *group, char *event,
+			       const char *filter_str)
+{
+	int fd, rc;
+	char fname[MAX_PATH + 1];
+
+	snprintf(fname, sizeof(fname), "events/%s/%s/filter", group, event);
+	fd = open_trace(ras, fname, O_RDWR | O_APPEND);
+	if (fd < 0) {
+		log(ALL, LOG_WARNING, "Can't open filter file\n");
+		return errno;
+	}
+
+	rc = write(fd, filter_str ,strlen(filter_str));
+	if (rc < 0) {
+		log(ALL, LOG_WARNING, "Can't write to filter file\n");
+		close(fd);
+		return rc;
+	}
+	close(fd);
+	if (!rc) {
+		log(ALL, LOG_WARNING, "Nothing was written on filter file\n");
+		return EIO;
+	}
+
+	return 0;
+}
 
 /*
  * Tracing read code
@@ -261,6 +302,7 @@ static void parse_ras_data(struct pthread_data *pdata, struct kbuffer *kbuf,
 	record.size = kbuffer_event_size(kbuf);
 	record.data = data;
 	record.offset = kbuffer_curr_offset(kbuf);
+	record.cpu = pdata->cpu;
 
 	/* note offset is just offset in subbuffer */
 	record.missed_events = kbuffer_missed_events(kbuf);
@@ -268,11 +310,10 @@ static void parse_ras_data(struct pthread_data *pdata, struct kbuffer *kbuf,
 
 	/* TODO - logging */
 	trace_seq_init(&s);
-	printf("cpu %02d:", pdata->cpu);
-	fflush(stdout);
 	pevent_print_event(pdata->ras->pevent, &s, &record);
 	trace_seq_do_printf(&s);
 	printf("\n");
+	fflush(stdout);
 }
 
 static int get_num_cpus(struct ras_events *ras)
@@ -421,7 +462,7 @@ static int read_ras_event(int fd,
 			  struct kbuffer *kbuf,
 			  void *page)
 {
-	unsigned size;
+	int size;
 	unsigned long long time_stamp;
 	void *data;
 
@@ -565,10 +606,11 @@ static int select_tracing_timestamp(struct ras_events *ras)
 
 static int add_event_handler(struct ras_events *ras, struct pevent *pevent,
 			     unsigned page_size, char *group, char *event,
-			     pevent_event_handler_func func)
+			     pevent_event_handler_func func, char *filter_str, int id)
 {
 	int fd, size, rc;
 	char *page, fname[MAX_PATH + 1];
+	struct event_filter * filter = NULL;
 
 	snprintf(fname, sizeof(fname), "events/%s/%s/format", group, event);
 
@@ -613,6 +655,28 @@ static int add_event_handler(struct ras_events *ras, struct pevent *pevent,
 		return EINVAL;
 	}
 
+	if (filter_str) {
+		char *error;
+
+		filter = pevent_filter_alloc(pevent);
+		if (!filter) {
+			log(TERM, LOG_ERR,
+			    "Failed to allocate filter for %s/%s.\n", group, event);
+			free(page);
+			return EINVAL;
+		}
+		rc = pevent_filter_add_filter_str(filter, filter_str, &error);
+		if (rc) {
+			log(TERM, LOG_ERR,
+			    "Failed to install filter for %s/%s: %s\n", group, event, error);
+			pevent_filter_free(filter);
+			free(page);
+			return rc;
+		}
+	}
+
+	ras->filters[id] = filter;
+
 	/* Enable RAS events */
 	rc = __toggle_ras_mc_event(ras, group, event, 1);
 	if (rc < 0) {
@@ -636,6 +700,9 @@ int handle_ras_events(int record_events)
 	struct pevent *pevent = NULL;
 	struct pthread_data *data = NULL;
 	struct ras_events *ras = NULL;
+#ifdef HAVE_DEVLINK
+	char *filter_str = NULL;
+#endif
 
 	ras = calloc(1, sizeof(*ras));
 	if (!ras) {
@@ -669,7 +736,7 @@ int handle_ras_events(int record_events)
 	ras->record_events = record_events;
 
 	rc = add_event_handler(ras, pevent, page_size, "ras", "mc_event",
-			       ras_mc_event_handler);
+			       ras_mc_event_handler, NULL, MC_EVENT);
 	if (!rc)
 		num_events++;
 	else
@@ -678,7 +745,7 @@ int handle_ras_events(int record_events)
 
 #ifdef HAVE_AER
 	rc = add_event_handler(ras, pevent, page_size, "ras", "aer_event",
-			       ras_aer_event_handler);
+			       ras_aer_event_handler, NULL, AER_EVENT);
 	if (!rc)
 		num_events++;
 	else
@@ -687,23 +754,23 @@ int handle_ras_events(int record_events)
 #endif
 
 #ifdef HAVE_NON_STANDARD
-        rc = add_event_handler(ras, pevent, page_size, "ras", "non_standard_event",
-                               ras_non_standard_event_handler);
-        if (!rc)
-                num_events++;
-        else
-                log(ALL, LOG_ERR, "Can't get traces from %s:%s\n",
-                    "ras", "non_standard_event");
+	rc = add_event_handler(ras, pevent, page_size, "ras", "non_standard_event",
+			       ras_non_standard_event_handler, NULL, NON_STANDARD_EVENT);
+	if (!rc)
+		num_events++;
+	else
+		log(ALL, LOG_ERR, "Can't get traces from %s:%s\n",
+		    "ras", "non_standard_event");
 #endif
 
 #ifdef HAVE_ARM
-        rc = add_event_handler(ras, pevent, page_size, "ras", "arm_event",
-                               ras_arm_event_handler);
-        if (!rc)
-                num_events++;
-        else
-                log(ALL, LOG_ERR, "Can't get traces from %s:%s\n",
-                    "ras", "arm_event");
+	rc = add_event_handler(ras, pevent, page_size, "ras", "arm_event",
+			       ras_arm_event_handler, NULL, ARM_EVENT);
+	if (!rc)
+		num_events++;
+	else
+		log(ALL, LOG_ERR, "Can't get traces from %s:%s\n",
+		    "ras", "arm_event");
 #endif
 
 	cpus = get_num_cpus(ras);
@@ -715,7 +782,7 @@ int handle_ras_events(int record_events)
 	if (ras->mce_priv) {
 		rc = add_event_handler(ras, pevent, page_size,
 				       "mce", "mce_record",
-			               ras_mce_event_handler);
+				       ras_mce_event_handler, NULL, MCE_EVENT);
 		if (!rc)
 			num_events++;
 	else
@@ -726,7 +793,7 @@ int handle_ras_events(int record_events)
 
 #ifdef HAVE_EXTLOG
 	rc = add_event_handler(ras, pevent, page_size, "ras", "extlog_mem_event",
-			       ras_extlog_mem_event_handler);
+			       ras_extlog_mem_event_handler, NULL, EXTLOG_EVENT);
 	if (!rc) {
 		/* tell kernel we are listening, so don't printk to console */
 		(void)open("/sys/kernel/debug/ras/daemon_active", 0);
@@ -734,6 +801,37 @@ int handle_ras_events(int record_events)
 	} else
 		log(ALL, LOG_ERR, "Can't get traces from %s:%s\n",
 		    "ras", "aer_event");
+#endif
+
+#ifdef HAVE_DEVLINK
+	rc = add_event_handler(ras, pevent, page_size, "net",
+			       "net_dev_xmit_timeout",
+			       ras_net_xmit_timeout_handler, NULL, DEVLINK_EVENT);
+	if (!rc)
+		filter_str = "devlink/devlink_health_report:msg=~\'TX timeout*\'";
+
+	rc = add_event_handler(ras, pevent, page_size, "devlink",
+			       "devlink_health_report",
+			       ras_devlink_event_handler, filter_str, DEVLINK_EVENT);
+	if (!rc)
+		num_events++;
+	else
+		log(ALL, LOG_ERR, "Can't get traces from %s:%s\n",
+		    "devlink", "devlink_health_report");
+#endif
+
+#ifdef HAVE_DISKERROR
+	rc = filter_ras_mc_event(ras, "block", "block_rq_complete", "error != 0");
+	if (!rc) {
+		rc = add_event_handler(ras, pevent, page_size, "block",
+				       "block_rq_complete", ras_diskerror_event_handler,
+					NULL, DISKERROR_EVENT);
+		if (!rc)
+			num_events++;
+		else
+			log(ALL, LOG_ERR, "Can't get traces from %s:%s\n",
+			    "block", "block_rq_complete");
+	}
 #endif
 
 	if (!num_events) {
@@ -785,8 +883,13 @@ err:
 	if (pevent)
 		pevent_free(pevent);
 
-	if (ras)
+	if (ras) {
+		for (i = 0; i < NR_EVENTS; i++) {
+			if (ras->filters[i])
+				pevent_filter_free(ras->filters[i]);
+		}
 		free(ras);
+	}
 
 	return rc;
 }

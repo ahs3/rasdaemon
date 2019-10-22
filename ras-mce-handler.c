@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2013 Mauro Carvalho Chehab <mchehab@redhat.com>
+ * Copyright (C) 2013 Mauro Carvalho Chehab <mchehab+redhat@kernel.org>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -54,6 +54,9 @@ static char *cputype_name[] = {
 	[CPU_BROADWELL_EPEX] = "Broadwell EP/EX",
 	[CPU_KNIGHTS_LANDING] = "Knights Landing",
 	[CPU_KNIGHTS_MILL] = "Knights Mill",
+	[CPU_SKYLAKE_XEON] = "Skylake server",
+	[CPU_NAPLES] = "AMD Family 17h Zen1",
+	[CPU_DHYANA] = "Hygon Family 18h Moksha"
 };
 
 static enum cputype select_intel_cputype(struct ras_events *ras)
@@ -103,6 +106,8 @@ static enum cputype select_intel_cputype(struct ras_events *ras)
 			return CPU_KNIGHTS_LANDING;
 		else if (mce->model == 0x85)
 			return CPU_KNIGHTS_MILL;
+		else if (mce->model == 0x55)
+			return CPU_SKYLAKE_XEON;
 
 		if (mce->model > 0x1a) {
 			log(ALL, LOG_INFO,
@@ -187,10 +192,18 @@ static int detect_cpu(struct ras_events *ras)
 	if (!strcmp(mce->vendor, "AuthenticAMD")) {
 		if (mce->family == 15)
 			mce->cputype = CPU_K8;
-		if (mce->family > 15) {
+		if (mce->family == 23)
+			mce->cputype = CPU_NAPLES;
+		if (mce->family > 23) {
 			log(ALL, LOG_INFO,
-			    "Can't parse MCE for this AMD CPU yet\n");
+			    "Can't parse MCE for this AMD CPU yet %d\n",
+			    mce->family);
 			ret = EINVAL;
+		}
+		goto ret;
+	} else if (!strcmp(mce->vendor,"HygonGenuine")) {
+		if (mce->family == 24) {
+			mce->cputype = CPU_DHYANA;
 		}
 		goto ret;
 	} else if (!strcmp(mce->vendor,"GenuineIntel")) {
@@ -328,7 +341,13 @@ static void report_mce_event(struct ras_events *ras,
 	if (e->status & MCI_STATUS_ADDRV)
 		trace_seq_printf(s, ", addr= %llx", (long long)e->addr);
 
-	if (e->mcgstatus_msg)
+	if (e->status & MCI_STATUS_SYNDV)
+		trace_seq_printf(s, ", synd= %llx", (long long)e->synd);
+
+	if (e->ipid)
+		trace_seq_printf(s, ", ipid= %llx", (long long)e->ipid);
+
+	if (*e->mcgstatus_msg)
 		trace_seq_printf(s, ", %s", e->mcgstatus_msg);
 	else
 		trace_seq_printf(s, ", mcgstatus= %llx",
@@ -408,12 +427,23 @@ int ras_mce_event_handler(struct trace_seq *s,
 	if (pevent_get_field_val(s, event, "cpuvendor", record, &val, 1) < 0)
 		return -1;
 	e.cpuvendor = val;
+	/* Get New entries */
+	if (pevent_get_field_val(s, event, "synd", record, &val, 1) < 0)
+		return -1;
+	e.synd = val;
+	if (pevent_get_field_val(s, event, "ipid", record, &val, 1) < 0)
+		return -1;
+	e.ipid = val;
 
 	switch (mce->cputype) {
 	case CPU_GENERIC:
 		break;
 	case CPU_K8:
 		rc = parse_amd_k8_event(ras, &e);
+		break;
+	case CPU_NAPLES:
+	case CPU_DHYANA:
+		rc = parse_amd_smca_event(ras, &e);
 		break;
 	default:			/* All other CPU types are Intel */
 		rc = parse_intel_event(ras, &e);
