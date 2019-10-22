@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2013 Mauro Carvalho Chehab <mchehab@redhat.com>
+ * Copyright (C) 2013 Mauro Carvalho Chehab <mchehab+redhat@kernel.org>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -49,6 +49,9 @@ enum cputype {
 	CPU_BROADWELL_EPEX,
 	CPU_KNIGHTS_LANDING,
 	CPU_KNIGHTS_MILL,
+	CPU_SKYLAKE_XEON,
+	CPU_NAPLES,
+	CPU_DHYANA,
 };
 
 struct mce_event {
@@ -68,6 +71,8 @@ struct mce_event {
 	uint8_t		cs;
 	uint8_t		bank;
 	uint8_t		cpuvendor;
+	uint64_t        synd;   /* MCA_SYND MSR: only valid on SMCA systems */
+	uint64_t        ipid;   /* MCA_IPID MSR: only valid on SMCA systems */
 
 	/* Parsed data */
 	char		timestamp[64];
@@ -126,6 +131,10 @@ void knl_decode_model(struct ras_events *ras, struct mce_event *e);
 void tulsa_decode_model(struct mce_event *e);
 void broadwell_de_decode_model(struct ras_events *ras, struct mce_event *e);
 void broadwell_epex_decode_model(struct ras_events *ras, struct mce_event *e);
+void skylake_s_decode_model(struct ras_events *ras, struct mce_event *e);
+
+/* AMD error code decode function */
+void decode_amd_errcode(struct mce_event *e);
 
 /* Software defined banks */
 #define MCE_EXTENDED_BANK	128
@@ -142,6 +151,13 @@ void broadwell_epex_decode_model(struct ras_events *ras, struct mce_event *e);
 #define MCI_STATUS_S	 (1ULL<<56)  /* signalled */
 #define MCI_STATUS_AR	 (1ULL<<55)  /* action-required */
 
+/* AMD-specific bits */
+#define MCI_STATUS_TCC          (1ULL<<55)  /* Task context corrupt */
+#define MCI_STATUS_SYNDV        (1ULL<<53)  /* synd reg. valid */
+/* uncorrected error,deferred exception */
+#define MCI_STATUS_DEFERRED     (1ULL<<44)
+#define MCI_STATUS_POISON       (1ULL<<43)  /* access poisonous data */
+
 #define MCG_STATUS_RIPV  (1ULL<<0)   /* restart ip valid */
 #define MCG_STATUS_EIPV  (1ULL<<1)   /* eip points to correct instruction */
 #define MCG_STATUS_MCIP  (1ULL<<2)   /* machine check in progress */
@@ -151,5 +167,7 @@ void broadwell_epex_decode_model(struct ras_events *ras, struct mce_event *e);
 int parse_intel_event(struct ras_events *ras, struct mce_event *e);
 
 int parse_amd_k8_event(struct ras_events *ras, struct mce_event *e);
+
+int parse_amd_smca_event(struct ras_events *ras, struct mce_event *e);
 
 #endif

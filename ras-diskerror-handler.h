@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2013 Mauro Carvalho Chehab <mchehab+redhat@kernel.org>
+ * Copyright (C) 2019 Cong Wang <xiyou.wangcong@gmail.com>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -16,14 +16,14 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 */
 
-#ifndef __RAS_MC_HANDLER_H
-#define __RAS_MC_HANDLER_H
+#ifndef __RAS_DISKERROR_HANDLER_H
+#define __RAS_DISKERROR_HANDLER_H
 
 #include "ras-events.h"
 #include "libtrace/event-parse.h"
 
-int ras_mc_event_handler(struct trace_seq *s,
-			 struct pevent_record *record,
-			 struct event_format *event, void *context);
+int ras_diskerror_event_handler(struct trace_seq *s,
+				struct pevent_record *record,
+				struct event_format *event, void *context);
 
 #endif

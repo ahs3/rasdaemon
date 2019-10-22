@@ -24,20 +24,6 @@
 #define HISI_SAS_VALID_ERR_TYPE       BIT(2)
 #define HISI_SAS_VALID_AXI_ERR_INFO   BIT(3)
 
-static int decode_hip07_sas_error(struct trace_seq *s, const void *error);
-static int decode_hip07_hns_error(struct trace_seq *s, const void *error);
-
-struct ras_ns_dec_tab hisi_ns_dec_tab[] = {
-	{
-		.sec_type = "daffd8146eba4d8c8a91bc9bbf4aa301",
-		.decode = decode_hip07_sas_error,
-	},
-	{
-		.sec_type = "fbc2d923ea7a453dab132949f5af9e53",
-		.decode = decode_hip07_hns_error,
-	},
-};
-
 struct hisi_sas_err_sec {
 	uint64_t   val_bits;
 	uint64_t   physical_addr;
@@ -101,11 +87,15 @@ static char *sas_axi_err_type(int etype)
 	return "unknown error";
 }
 
-static int decode_hip07_sas_error(struct trace_seq *s, const void *error)
+static int decode_hip07_sas_error(struct ras_events *ras,
+				  struct ras_ns_dec_tab *dec_tab,
+				  struct trace_seq *s,
+				  struct ras_non_standard_event *event)
 {
 	char buf[1024];
 	char *p = buf;
-	const struct hisi_sas_err_sec *err = error;
+	const struct hisi_sas_err_sec *err =
+			(struct hisi_sas_err_sec *)event->error;
 
 	if (err->val_bits == 0) {
 		trace_seq_printf(s, "%s: no valid error data\n",
@@ -134,13 +124,28 @@ static int decode_hip07_sas_error(struct trace_seq *s, const void *error)
 	return 0;
 }
 
-static int decode_hip07_hns_error(struct trace_seq *s, const void *error)
+static int decode_hip07_hns_error(struct ras_events *ras,
+				  struct ras_ns_dec_tab *dec_tab,
+				  struct trace_seq *s,
+				  struct ras_non_standard_event *event)
 {
 	return 0;
 }
+
+struct ras_ns_dec_tab hisi_ns_dec_tab[] = {
+	{
+		.sec_type = "daffd8146eba4d8c8a91bc9bbf4aa301",
+		.decode = decode_hip07_sas_error,
+	},
+	{
+		.sec_type = "fbc2d923ea7a453dab132949f5af9e53",
+		.decode = decode_hip07_hns_error,
+	},
+	{ /* sentinel */ }
+};
+
 __attribute__((constructor))
 static void hip07_init(void)
 {
-	hisi_ns_dec_tab[0].len = ARRAY_SIZE(hisi_ns_dec_tab);
 	register_ns_dec_tab(hisi_ns_dec_tab);
 }
