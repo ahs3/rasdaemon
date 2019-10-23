@@ -1,0 +1,20 @@
+diff -Naur rasdaemon/man/ras-mc-ctl.8.in rasdaemon-fixes/man/ras-mc-ctl.8.in
+--- rasdaemon/man/ras-mc-ctl.8.in	2019-10-22 20:59:49.235536881 -0600
++++ rasdaemon-fixes/man/ras-mc-ctl.8.in	2019-10-22 21:39:13.207413933 -0600
+@@ -79,9 +79,15 @@
+ Specify a delay of \fBtime\fR seconds before registering DIMM labels.
+ Only meaninful if used together with --register-labels.
+ .TP
+-.BI "--layout
++.BI "--layout"
+ Prints the memory layout as detected by the EDAC driver. Useful to check
+ if the EDAC driver is properly detecting the memory controller architecture.
++.TP
++.BI "--summary"
++Presents a summary of the errors that have been logged.
++.TP
++.BI "--errors"
++Shows the errors stored in the error database.
+ 
+ .SH MAINBOARD CONFIGURATION
+ .PP

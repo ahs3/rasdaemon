@@ -1,3 +1,38 @@
+rasdaemon (0.6.4-1) unstable; urgency=medium
+
+  * Update to latest upstream.
+  * Update Standards version to 4.4.1
+  * Incorporate all the NMU work (thanks!)
+  * Closes: #890497 -- NMU for systemd and autoreconf cleanup
+  * Closes: #889487 -- add an init script for SysV init systems
+  * Closes: #942405 -- release 0.6.4 is out, please update
+  * Closes: #906961 -- add man options not documented for ras-mc-ctl
+  * Closes: #916470 -- corrected project homepage
+  * Closes: #933910 -- add patch to preclude rasdaemon.service from
+    sometimes terminating at boot
+
+ -- Al Stone <ahs3@debian.org>  Tue, 22 Oct 2019 15:19:32 -0600
+
+rasdaemon (0.6.0-1.2) unstable; urgency=medium
+
+  * Non-maintainer upload.
+  * Closes: #896432 -- debian/rules: Add support for ARM events
+    (--enable-arm).
+
+ -- dann frazier <dannf@debian.org>  Wed, 09 May 2018 08:46:47 -0600
+
+rasdaemon (0.6.0-1.1) unstable; urgency=medium
+
+  * Non-maintainer upload.
+  * debian/control: Add ${perl:Depends} to the Depends field
+  * debian/rules:
+    - Cleanup comments added by dh_make, that should fix the lintian error.
+    - Stop overriding dh_installdeb to call dh_system_start/dh_systemd_enable,
+      use "--with systemd" instead
+    - Stop calling autoreconf manually, use "--with autoreconf" instead
+
+ -- Laurent Bigonville <bigon@debian.org>  Thu, 15 Feb 2018 11:15:00 +0100
+
 rasdaemon (0.6.0-1) unstable; urgency=medium
 
   * Closes: #879632 -- Update to 0.6.0 upstream.
