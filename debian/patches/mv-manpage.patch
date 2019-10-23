@@ -1,18 +1,30 @@
-diff -Naur rasdaemon-0.5.6/man/Makefile.am rasdaemon-0.5.6.fixes/man/Makefile.am
---- rasdaemon-0.5.6/man/Makefile.am	2015-09-11 15:14:05.000000000 -0600
-+++ rasdaemon-0.5.6.fixes/man/Makefile.am	2015-09-11 17:30:15.774417171 -0600
+diff -Naur rasdaemon/configure.ac rasdaemon-fixes/configure.ac
+--- rasdaemon/configure.ac	2019-10-22 20:59:49.235536881 -0600
++++ rasdaemon-fixes/configure.ac	2019-10-22 21:03:15.525819156 -0600
+@@ -15,7 +15,7 @@
+ 	libtrace/Makefile
+ 	man/Makefile
+ 	man/ras-mc-ctl.8
+-	man/rasdaemon.1
++	man/rasdaemon.8
+ 	misc/rasdaemon.spec
+ 	util/Makefile
+ 	util/ras-mc-ctl
+diff -Naur rasdaemon/man/Makefile.am rasdaemon-fixes/man/Makefile.am
+--- rasdaemon/man/Makefile.am	2017-11-27 18:24:04.767889528 -0700
++++ rasdaemon-fixes/man/Makefile.am	2019-10-22 21:01:23.638751224 -0600
 @@ -1,2 +1,2 @@
 -man_MANS = ras-mc-ctl.8 rasdaemon.1
 +man_MANS = ras-mc-ctl.8 rasdaemon.8
  
-diff -Naur rasdaemon-0.5.6/man/rasdaemon.1.in rasdaemon-0.5.6.fixes/man/rasdaemon.1.in
---- rasdaemon-0.5.6/man/rasdaemon.1.in	2015-09-11 15:14:05.000000000 -0600
-+++ rasdaemon-0.5.6.fixes/man/rasdaemon.1.in	1969-12-31 17:00:00.000000000 -0700
+diff -Naur rasdaemon/man/rasdaemon.1.in rasdaemon-fixes/man/rasdaemon.1.in
+--- rasdaemon/man/rasdaemon.1.in	2019-10-22 20:59:49.235536881 -0600
++++ rasdaemon-fixes/man/rasdaemon.1.in	1969-12-31 17:00:00.000000000 -0700
 @@ -1,67 +0,0 @@
 -.\"****************************************************************************
 -.\" $Id$
 -.\"****************************************************************************
--.\"Copyright (c) 2013 Mauro Carvalho Chehab <mchehab@redhat.com>
+-.\"Copyright (c) 2013 Mauro Carvalho Chehab <mchehab+redhat@kernel.org>
 -.\"
 -.\" This is free software; you can redistribute it and/or modify it
 -.\" under the terms of the GNU General Public License as published by
@@ -76,14 +88,14 @@ diff -Naur rasdaemon-0.5.6/man/rasdaemon.1.in rasdaemon-0.5.6.fixes/man/rasdaemo
 -.SH SEE ALSO
 -\fBras-mc-ctl\fR(8)
 -
-diff -Naur rasdaemon-0.5.6/man/rasdaemon.8.in rasdaemon-0.5.6.fixes/man/rasdaemon.8.in
---- rasdaemon-0.5.6/man/rasdaemon.8.in	1969-12-31 17:00:00.000000000 -0700
-+++ rasdaemon-0.5.6.fixes/man/rasdaemon.8.in	2015-09-11 17:29:31.802775207 -0600
+diff -Naur rasdaemon/man/rasdaemon.8.in rasdaemon-fixes/man/rasdaemon.8.in
+--- rasdaemon/man/rasdaemon.8.in	1969-12-31 17:00:00.000000000 -0700
++++ rasdaemon-fixes/man/rasdaemon.8.in	2019-10-22 21:00:21.495268484 -0600
 @@ -0,0 +1,67 @@
 +.\"****************************************************************************
 +.\" $Id$
 +.\"****************************************************************************
-+.\"Copyright (c) 2013 Mauro Carvalho Chehab <mchehab@redhat.com>
++.\"Copyright (c) 2013 Mauro Carvalho Chehab <mchehab+redhat@kernel.org>
 +.\"
 +.\" This is free software; you can redistribute it and/or modify it
 +.\" under the terms of the GNU General Public License as published by
@@ -147,15 +159,3 @@ diff -Naur rasdaemon-0.5.6/man/rasdaemon.8.in rasdaemon-0.5.6.fixes/man/rasdaemo
 +.SH SEE ALSO
 +\fBras-mc-ctl\fR(8)
 +
-diff -Naur rasdaemon-0.5.6/configure.ac rasdaemon-0.5.6.fixes/configure.ac
---- rasdaemon-0.5.6/configure.ac	2015-09-11 17:56:04.000000000 -0600
-+++ rasdaemon-0.5.6.fixes/configure.ac	2015-09-13 19:47:24.836957290 -0600
-@@ -15,7 +15,7 @@
- 	libtrace/Makefile
- 	man/Makefile
- 	man/ras-mc-ctl.8
--	man/rasdaemon.1
-+	man/rasdaemon.8
- 	misc/rasdaemon.spec
- 	util/Makefile
- 	util/ras-mc-ctl

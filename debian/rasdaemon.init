@@ -1,0 +1,37 @@
+#!/bin/sh
+### BEGIN INIT INFO
+# Provides:          rasdaemon
+# Required-Start:    mountdebugfs
+# Required-Stop:
+# Should-Start:
+# Should-Stop:
+# X-Start-Before:
+# X-Stop-After:
+# Default-Start:     2 3 4 5
+# Default-Stop:
+### END INIT INFO
+
+SCRIPTNAME=/etc/init.d/rasdaemon
+
+. /lib/lsb/init-functions
+
+[ -x /usr/sbin/rasdaemon ] || exit 0
+
+case $1 in
+	start)
+		log_action_begin_msg "Starting rasdaemon"
+		/usr/sbin/rasdaemon --record
+		log_action_end_msg "$?"
+		/usr/sbin/rasdaemon --enable
+		log_action_end_msg "$?"
+		/usr/sbin/ras-mc-ctl --register-labels
+		log_action_end_msg "$?"
+		;;
+	stop|restart|force-reload|status)
+		;;
+	*)
+		echo "Usage: $SCRIPTNAME start" >&2
+		exit 3
+		;;
+esac
+
