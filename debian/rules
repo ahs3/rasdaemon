@@ -13,6 +13,5 @@ override_dh_auto_configure:
 	--enable-abrt-report --enable-arm
 
 override_dh_install:
-	dh_installinit
 	dh_install
 	rm -rf $(CURDIR)/debian/rasdaemon/usr/include
