@@ -2,6 +2,8 @@ rasdaemon (0.6.4-2) unstable; urgency=medium
 
   * Corrected the home page in the control file; previous attempt
     had a cut'n'paste error.  Closes: #916740 properly this time.
+  * Changed VCS-git to point at salsa.debian.org as a more reliable
+    location for the Debian packaging.
 
  -- Al Stone <ahs3@debian.org>  Thu, 24 Oct 2019 12:13:45 -0600
 
