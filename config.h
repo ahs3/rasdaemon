@@ -8,7 +8,13 @@
 #define HAVE_AER 1
 
 /* "have ARM events collect" */
-/* #undef HAVE_ARM */
+#define HAVE_ARM 1
+
+/* "have devlink health events collect" */
+#define HAVE_DEVLINK 1
+
+/* "have disk I/O errors collect" */
+#define HAVE_DISKERROR 1
 
 /* Define to 1 if you have the <dlfcn.h> header file. */
 #define HAVE_DLFCN_H 1
@@ -17,7 +23,7 @@
 #define HAVE_EXTLOG 1
 
 /* "have HISI UNKNOWN_SEC events decode" */
-/* #undef HAVE_HISI_NS_DECODE */
+#define HAVE_HISI_NS_DECODE 1
 
 /* Define to 1 if you have the <inttypes.h> header file. */
 #define HAVE_INTTYPES_H 1
@@ -29,7 +35,7 @@
 #define HAVE_MEMORY_H 1
 
 /* "have UNKNOWN_SEC events collect" */
-/* #undef HAVE_NON_STANDARD */
+#define HAVE_NON_STANDARD 1
 
 /* "have sqlite3" */
 #define HAVE_SQLITE3 1
@@ -95,7 +101,7 @@
 #define PACKAGE_NAME "RASdaemon"
 
 /* Define to the full name and version of this package. */
-#define PACKAGE_STRING "RASdaemon 0.6.0"
+#define PACKAGE_STRING "RASdaemon 0.6.4"
 
 /* Define to the one symbol short name of this package. */
 #define PACKAGE_TARNAME "rasdaemon"
@@ -104,7 +110,7 @@
 #define PACKAGE_URL ""
 
 /* Define to the version of this package. */
-#define PACKAGE_VERSION "0.6.0"
+#define PACKAGE_VERSION "0.6.4"
 
 /* rasdaemon db store state dir */
 #define RASSTATEDIR "/usr/local/var/lib/rasdaemon"
@@ -116,4 +122,4 @@
 #define STDC_HEADERS 1
 
 /* Version number of package */
-#define VERSION "0.6.0"
+#define VERSION "0.6.4"

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2013 Mauro Carvalho Chehab <mchehab@redhat.com>
+ * Copyright (C) 2013 Mauro Carvalho Chehab <mchehab+redhat@kernel.org>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -29,6 +29,18 @@
 
 struct mce_priv;
 
+enum {
+	MC_EVENT,
+	MCE_EVENT,
+	AER_EVENT,
+	NON_STANDARD_EVENT,
+	ARM_EVENT,
+	EXTLOG_EVENT,
+	DEVLINK_EVENT,
+	DISKERROR_EVENT,
+	NR_EVENTS
+};
+
 struct ras_events {
 	char debugfs[MAX_PATH + 1];
 	char tracing[MAX_PATH + 1];
@@ -50,6 +62,8 @@ struct ras_events {
 
 	/* For ABRT socket*/
 	int socketfd;
+
+	struct event_filter *filters[NR_EVENTS];
 };
 
 struct pthread_data {
@@ -66,6 +80,13 @@ enum hw_event_mc_err_type {
 	HW_EVENT_ERR_UNCORRECTED,
 	HW_EVENT_ERR_FATAL,
 	HW_EVENT_ERR_INFO,
+};
+
+/* Should match the code at Kernel's /drivers/pci/pcie/aer/aerdrv_errprint.c */
+enum hw_event_aer_err_type {
+	HW_EVENT_AER_UNCORRECTED_NON_FATAL,
+	HW_EVENT_AER_UNCORRECTED_FATAL,
+	HW_EVENT_AER_CORRECTED,
 };
 
 /* Should match the code at Kernel's include/acpi/ghes.h */

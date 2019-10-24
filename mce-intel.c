@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2013 Mauro Carvalho Chehab <mchehab@redhat.com>
+ * Copyright (C) 2013 Mauro Carvalho Chehab <mchehab+redhat@kernel.org>
  *
  * The code below were adapted from Andi Kleen/Intel/SuSe mcelog code,
  * released under GNU Public General License, v.2
@@ -407,6 +407,9 @@ int parse_intel_event(struct ras_events *ras, struct mce_event *e)
 		break;
 	case CPU_BROADWELL_EPEX:
 		broadwell_epex_decode_model(ras, e);
+		break;
+	case CPU_SKYLAKE_XEON:
+		skylake_s_decode_model(ras, e);
 		break;
 	default:
 		break;

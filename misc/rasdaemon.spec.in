@@ -6,7 +6,9 @@ Group:			Applications/System
 License:		GPLv2
 URL:			http://git.infradead.org/users/mchehab/rasdaemon.git
 Source0:		http://www.infradead.org/~mchehab/rasdaemon/%{name}-%{version}.tar.bz2
+
 ExcludeArch:		s390 s390x
+BuildRequires:		gcc
 BuildRequires:		gettext-devel
 BuildRequires:		perl-generators
 BuildRequires:		sqlite-devel
@@ -36,7 +38,7 @@ an utility for reporting current error counts from the EDAC sysfs files.
 %setup -q
 
 %build
-%configure --enable-mce --enable-aer --enable-sqlite3 --enable-extlog --enable-abrt-report --enable-non-standard --enable-hisi-ns-decode --enable-arm
+%configure --enable-all
 
 make %{?_smp_mflags}
 
@@ -57,22 +59,34 @@ rm INSTALL %{buildroot}/usr/include/*.h
 
 %changelog
 
-* Sat Oct 14 2017 Mauro Carvalho Chehab <mchehab@osg.samsung.com>  0.6.0-1
-- Bump to version 0.5.8 adding support for Arm and Hisilicon events and update Dell Skylate labels
+* Fri Oct 10 2019 Mauro Carvalho Chehab <mchehab+samsung@kernel.org>  0.6.4-1
+- Bump to version 0.6.3 with some DB changes for hip08 and some fixes
 
-* Thu Jun 08 2017 Mauro Carvalho Chehab <mchehab@osg.samsung.com> 0.5.9-1
-- Bump to version 0.5.8 adding support for Knights Mill and update DELL labels
+* Fri Aug 23 2019 Mauro Carvalho Chehab <mchehab+samsung@kernel.org>  0.6.3-1
+- Bump to version 0.6.3 with new ARM events, plus disk I/O and netlink support
 
-* Fri Apr 15 2016 Mauro Carvalho Chehab <mchehab@osg.samsung.com> 0.5.8-1
+* Tue Aug 14 2018 Mauro Carvalho Chehab <mchehab+samsung@kernel.org>  0.6.2-1
+- Bump to version 0.6.2 with improvements for PCIe AER parsing and at ras-mc-ctl tool
+
+* Wed Apr 25 2018 Mauro Carvalho Chehab <mchehab+samsung@kernel.org>  0.6.1-1
+- Bump to version 0.6.1 adding support for Skylake Xeon MSCOD, a bug fix and some new DELL labels
+
+* Sat Oct 14 2017 Mauro Carvalho Chehab <mchehab+samsung@kernel.org>  0.6.0-1
+- Bump to version 0.6.0 adding support for Arm and Hisilicon events and update Dell Skylate labels
+
+* Thu Jun 08 2017 Mauro Carvalho Chehab <mchehab+samsung@kernel.org> 0.5.9-1
+- Bump to version 0.5.9 adding support for Knights Mill and update DELL labels
+
+* Fri Apr 15 2016 Mauro Carvalho Chehab <mchehab+samsung@kernel.org> 0.5.8-1
 - Bump to version 0.5.8 adding support for Broadwell EP/EX MSCOD and Broadwell DE MSCOD
 
-* Fri Feb 05 2016 Mauro Carvalho Chehab <mchehab@osg.samsung.com> 0.5.7-1
+* Fri Feb 05 2016 Mauro Carvalho Chehab <mchehab+samsung@kernel.org> 0.5.7-1
 - Bump to version 0.5.7 adding support for Broadwell-EP/EX and -DE and Knights Landing processors
 
-* Fri Jul 03 2015 Mauro Carvalho Chehab <mchehab@osg.samsung.com> 0.5.6-1
+* Fri Jul 03 2015 Mauro Carvalho Chehab <mchehab+samsung@kernel.org> 0.5.6-1
 - Bump to version 0.5.6 with support for LMCE and some fixes
 
-* Wed Jun 03 2015 Mauro Carvalho Chehab <mchehab@osg.samsung.com> 0.5.5-1
+* Wed Jun 03 2015 Mauro Carvalho Chehab <mchehab+samsung@kernel.org> 0.5.5-1
 - Bump to version 0.5.5 with support for newer Intel platforms & some fixes
 
 * Fri Aug 15 2014 Mauro Carvalho Chehab <m.chehab@samsung.com> 0.5.4-1
@@ -84,14 +98,14 @@ rm INSTALL %{buildroot}/usr/include/*.h
 * Tue Sep 10 2013 Mauro Carvalho Chehab <m.chehab@samsung.com> 0.4.2-1
 - Fix ras-mc-ctl layout filling
 
-* Wed May 29 2013 Mauro Carvalho Chehab <mchehab@redhat.com> 0.4.1-2
+* Wed May 29 2013 Mauro Carvalho Chehab <mchehab+redhat@kernel.org> 0.4.1-2
 - Fix the name of perl-DBD-SQLite package
 
-* Wed May 29 2013 Mauro Carvalho Chehab <mchehab@redhat.com> 0.4.1-1
+* Wed May 29 2013 Mauro Carvalho Chehab <mchehab+redhat@kernel.org> 0.4.1-1
 - Updated to version 0.4.1 with contains some bug fixes
 
-* Tue May 28 2013 Mauro Carvalho Chehab <mchehab@redhat.com> 0.4.0-1
+* Tue May 28 2013 Mauro Carvalho Chehab <mchehab+redhat@kernel.org> 0.4.0-1
 - Updated to version 0.4.0 and added support for mce, aer and sqlite3 storage
 
-* Mon May 20 2013 Mauro Carvalho Chehab <mchehab@redhat.com> 0.3.0-1
+* Mon May 20 2013 Mauro Carvalho Chehab <mchehab+redhat@kernel.org> 0.3.0-1
 - Package created
