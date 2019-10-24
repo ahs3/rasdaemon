@@ -5,7 +5,7 @@ Maintainer: Al Stone <ahs3@debian.org>
 Build-Depends: debhelper (>= 9.20160709), autotools-dev, quilt, libsqlite3-dev, 
  libgettextpo-dev, dh-autoreconf, autoconf
 Standards-Version: 4.4.1
-Homepage: https://pagure.io/packages/rasdaemon
+Homepage: https://github.com/mchehab/rasdaemon
 Vcs-git: https://github.com/ahs3/rasdaemon.git
 
 Package: rasdaemon
