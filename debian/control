@@ -10,7 +10,7 @@ Vcs-git: https://salsa.debian.org/ahs3/rasdaemon
 
 Package: rasdaemon
 Architecture: any
-Depends: ${shlibs:Depends}, ${misc:Depends}, ${perl:Depends}, sqlite3, systemd,
+Depends: ${shlibs:Depends}, ${misc:Depends}, ${perl:Depends}, sqlite3,
  libdbd-sqlite3-perl
 Description: utility to receive RAS error tracings
  rasdaemon is a RAS (Reliability, Availability and Serviceability) logging

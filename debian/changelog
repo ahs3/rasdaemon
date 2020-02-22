@@ -4,6 +4,7 @@ rasdaemon (0.6.5-1) unstable; urgency=medium
   * Update Standard version to 4.5.0
   * Home page is the proper upstream now.  Closes: #916470 -- tested by
     going to the sid package page.
+  * Remove hard dependency on systemd.  Closes: #947350
 
  -- Al Stone <ahs3@debian.org>  Fri, 21 Feb 2020 18:09:55 -0700
 
