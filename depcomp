@@ -402,8 +402,8 @@ pgcc)
       # If the lock is being held by a different process, wait
       # until the winning process is done or we timeout.
       while test -d "$lockdir" && test $i -gt 0; do
-	sleep 1
-	i=`expr $i - 1`
+        sleep 1
+        i=`expr $i - 1`
       done
     fi
     i=`expr $i - 1`
@@ -464,11 +464,11 @@ hp2)
     sed -e "s,^.*\.[$lower]*:,$object:," "$tmpdepfile" > "$depfile"
     # Add 'dependent.h:' lines.
     sed -ne '2,${
-	       s/^ *//
-	       s/ \\*$//
-	       s/$/:/
-	       p
-	     }' "$tmpdepfile" >> "$depfile"
+               s/^ *//
+               s/ \\*$//
+               s/$/:/
+               p
+             }' "$tmpdepfile" >> "$depfile"
   else
     make_dummy_depfile
   fi
@@ -707,7 +707,7 @@ cpp)
 
   "$@" -E \
     | sed -n -e '/^# [0-9][0-9]* "\([^"]*\)".*/ s:: \1 \\:p' \
-	     -e '/^#line [0-9][0-9]* "\([^"]*\)".*/ s:: \1 \\:p' \
+             -e '/^#line [0-9][0-9]* "\([^"]*\)".*/ s:: \1 \\:p' \
     | sed '$ s: \\$::' > "$tmpdepfile"
   rm -f "$depfile"
   echo "$object : \\" > "$depfile"
@@ -740,15 +740,15 @@ msvisualcpp)
       shift
       ;;
     "-Gm"|"/Gm"|"-Gi"|"/Gi"|"-ZI"|"/ZI")
-	set fnord "$@"
-	shift
-	shift
-	;;
+        set fnord "$@"
+        shift
+        shift
+        ;;
     *)
-	set fnord "$@" "$arg"
-	shift
-	shift
-	;;
+        set fnord "$@" "$arg"
+        shift
+        shift
+        ;;
     esac
   done
   "$@" -E 2>/dev/null |
