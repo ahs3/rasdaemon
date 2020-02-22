@@ -25,6 +25,8 @@
 #include <sys/stat.h>
 #include <sys/types.h>
 #include <sys/poll.h>
+#include <signal.h>
+#include <sys/signalfd.h>
 #include "libtrace/kbuffer.h"
 #include "libtrace/event-parse.h"
 #include "ras-mc-handler.h"
@@ -350,9 +352,12 @@ static int read_ras_event_all_cpus(struct pthread_data *pdata,
 	int ready, i, count_nready;
 	struct kbuffer *kbuf;
 	void *page;
-	struct pollfd fds[n_cpus];
+	struct pollfd fds[n_cpus + 1];
+	struct signalfd_siginfo fdsiginfo;
+	sigset_t mask;
 	int warnonce[n_cpus];
 	char pipe_raw[PATH_MAX];
+	int legacy_kernel = 0;
 #if 0
 	int need_sleep = 0;
 #endif
@@ -372,6 +377,9 @@ static int read_ras_event_all_cpus(struct pthread_data *pdata,
 		return -ENOMEM;
 	}
 
+	for (i = 0; i < (n_cpus + 1); i++)
+		fds[i].fd = -1;
+
 	for (i = 0; i < n_cpus; i++) {
 		fds[i].events = POLLIN;
 
@@ -382,10 +390,22 @@ static int read_ras_event_all_cpus(struct pthread_data *pdata,
 		fds[i].fd = open_trace(pdata[0].ras, pipe_raw, O_RDONLY);
 		if (fds[i].fd < 0) {
 			log(TERM, LOG_ERR, "Can't open trace_pipe_raw\n");
-			kbuffer_free(kbuf);
-			free(page);
-			return -EINVAL;
+			goto error;
 		}
+	}
+
+	sigemptyset(&mask);
+	sigaddset(&mask, SIGINT);
+	sigaddset(&mask, SIGTERM);
+	sigaddset(&mask, SIGHUP);
+	sigaddset(&mask, SIGQUIT);
+	if (sigprocmask(SIG_BLOCK, &mask, NULL) == -1)
+		log(TERM, LOG_WARNING, "sigprocmask\n");
+	fds[n_cpus].events = POLLIN;
+	fds[n_cpus].fd = signalfd(-1, &mask, 0);
+	if (fds[n_cpus].fd < 0) {
+		log(TERM, LOG_WARNING, "signalfd\n");
+		goto error;
 	}
 
 	log(TERM, LOG_INFO, "Listening to events for cpus 0 to %d\n", n_cpus - 1);
@@ -393,10 +413,32 @@ static int read_ras_event_all_cpus(struct pthread_data *pdata,
 		ras_mc_event_opendb(pdata[0].cpu, pdata[0].ras);
 
 	do {
-		ready = poll(fds, n_cpus, -1);
+		ready = poll(fds, (n_cpus + 1), -1);
 		if (ready < 0) {
 			log(TERM, LOG_WARNING, "poll\n");
 		}
+
+		/* check for the signal */
+		if (fds[n_cpus].revents & POLLIN) {
+			size = read(fds[n_cpus].fd, &fdsiginfo,
+				    sizeof(struct signalfd_siginfo));
+			if (size != sizeof(struct signalfd_siginfo))
+				log(TERM, LOG_WARNING, "signalfd read\n");
+
+			if (fdsiginfo.ssi_signo == SIGINT ||
+			    fdsiginfo.ssi_signo == SIGTERM ||
+			    fdsiginfo.ssi_signo == SIGHUP ||
+			    fdsiginfo.ssi_signo == SIGQUIT) {
+				log(TERM, LOG_INFO, "Recevied signal=%d\n",
+				    fdsiginfo.ssi_signo);
+				goto  cleanup;
+			} else {
+				log(TERM, LOG_INFO,
+				    "Received unexpected signal=%d\n",
+				    fdsiginfo.ssi_signo);
+			}
+		}
+
 		count_nready = 0;
 		for (i = 0; i < n_cpus; i++) {
 			if (fds[i].revents & POLLERR) {
@@ -416,7 +458,7 @@ static int read_ras_event_all_cpus(struct pthread_data *pdata,
 			size = read(fds[i].fd, page, pdata[i].ras->page_size);
 			if (size < 0) {
 				log(TERM, LOG_WARNING, "read\n");
-				return -1;
+				goto cleanup;
 			} else if (size > 0) {
 				kbuffer_load_subbuffer(kbuf, page);
 
@@ -441,6 +483,7 @@ static int read_ras_event_all_cpus(struct pthread_data *pdata,
 		 */
 		if (count_nready == n_cpus) {
 			/* Should only happen with legacy kernels */
+			legacy_kernel = 1;
 			break;
 		}
 #endif
@@ -449,12 +492,27 @@ static int read_ras_event_all_cpus(struct pthread_data *pdata,
 	/* poll() is not supported. We need to fallback to the old way */
 	log(TERM, LOG_INFO,
 	    "Old kernel detected. Stop listening and fall back to pthread way.\n");
+
+cleanup:
+	if (pdata[0].ras->record_events) {
+		unregister_ns_dec_tab();
+		ras_mc_event_closedb(pdata[0].cpu, pdata[0].ras);
+	}
+
+error:
 	kbuffer_free(kbuf);
 	free(page);
-	for (i = 0; i < n_cpus; i++)
-		close(fds[i].fd);
+	sigprocmask(SIG_UNBLOCK, &mask, NULL);
 
-	return -255;
+	for (i = 0; i < (n_cpus + 1); i++) {
+		if (fds[i].fd > 0)
+			close(fds[i].fd);
+	}
+
+	if (legacy_kernel)
+		return -255;
+	else
+		return -1;
 }
 
 static int read_ras_event(int fd,
@@ -531,6 +589,11 @@ static void *handle_ras_events_cpu(void *priv)
 
 	read_ras_event(fd, pdata, kbuf, page);
 
+	if (pdata->ras->record_events) {
+		unregister_ns_dec_tab();
+		ras_mc_event_closedb(pdata->cpu, pdata->ras);
+	}
+
 	close(fd);
 	kbuffer_free(kbuf);
 	free(page);
@@ -591,12 +654,12 @@ static int select_tracing_timestamp(struct ras_events *ras)
 		return 0;
 	}
 	rc = fscanf(fp, "%zu.%u ", &uptime, &j1);
+	fclose(fp);
 	if (rc <= 0) {
 		log(TERM, LOG_ERR, "Can't parse /proc/uptime!\n");
 		return -1;
 	}
 	now = time(NULL);
-	fclose(fp);
 
 	ras->use_uptime = 1;
 	ras->uptime_diff = now - uptime;
@@ -679,6 +742,7 @@ static int add_event_handler(struct ras_events *ras, struct pevent *pevent,
 
 	/* Enable RAS events */
 	rc = __toggle_ras_mc_event(ras, group, event, 1);
+	free(page);
 	if (rc < 0) {
 		log(TERM, LOG_ERR, "Can't enable %s:%s tracing\n",
 		    group, event);
@@ -688,7 +752,6 @@ static int add_event_handler(struct ras_events *ras, struct pevent *pevent,
 
 	log(ALL, LOG_INFO, "Enabled event %s:%s\n", group, event);
 
-	free(page);
 	return 0;
 }
 
@@ -837,7 +900,8 @@ int handle_ras_events(int record_events)
 	if (!num_events) {
 		log(ALL, LOG_INFO,
 		    "Failed to trace all supported RAS events. Aborting.\n");
-		return EINVAL;
+		rc = -EINVAL;
+		goto err;
 	}
 
 	data = calloc(sizeof(*data), cpus);

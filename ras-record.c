@@ -35,9 +35,6 @@
 
 #define SQLITE_RAS_DB RASSTATEDIR "/" RAS_DB_FNAME
 
-
-#define ARRAY_SIZE(x) (sizeof(x)/sizeof(*(x)))
-
 /*
  * Table and functions to handle ras:mc_event
  */
@@ -109,6 +106,7 @@ int ras_store_mc_event(struct ras_events *ras, struct ras_mc_event *ev)
 static const struct db_fields aer_event_fields[] = {
 		{ .name="id",			.type="INTEGER PRIMARY KEY" },
 		{ .name="timestamp",		.type="TEXT" },
+		{ .name="dev_name",		.type="TEXT" },
 		{ .name="err_type",		.type="TEXT" },
 		{ .name="err_msg",		.type="TEXT" },
 };
@@ -129,8 +127,9 @@ int ras_store_aer_event(struct ras_events *ras, struct ras_aer_event *ev)
 	log(TERM, LOG_INFO, "aer_event store: %p\n", priv->stmt_aer_event);
 
 	sqlite3_bind_text(priv->stmt_aer_event,  1, ev->timestamp, -1, NULL);
-	sqlite3_bind_text(priv->stmt_aer_event,  2, ev->error_type, -1, NULL);
-	sqlite3_bind_text(priv->stmt_aer_event,  3, ev->msg, -1, NULL);
+	sqlite3_bind_text(priv->stmt_aer_event,  2, ev->dev_name, -1, NULL);
+	sqlite3_bind_text(priv->stmt_aer_event,  3, ev->error_type, -1, NULL);
+	sqlite3_bind_text(priv->stmt_aer_event,  4, ev->msg, -1, NULL);
 
 	rc = sqlite3_step(priv->stmt_aer_event);
 	if (rc != SQLITE_OK && rc != SQLITE_DONE)
@@ -502,10 +501,9 @@ int ras_store_diskerror_event(struct ras_events *ras, struct diskerror_event *ev
 /*
  * Generic code
  */
-
-static int ras_mc_prepare_stmt(struct sqlite3_priv *priv,
-			       sqlite3_stmt **stmt,
-			       const struct db_table_descriptor *db_tab)
+static int __ras_mc_prepare_stmt(struct sqlite3_priv *priv,
+				 sqlite3_stmt **stmt,
+				 const struct db_table_descriptor *db_tab)
 
 {
 	int i, rc;
@@ -581,6 +579,92 @@ static int ras_mc_create_table(struct sqlite3_priv *priv,
 	return rc;
 }
 
+static int ras_mc_alter_table(struct sqlite3_priv *priv,
+			      sqlite3_stmt **stmt,
+			      const struct db_table_descriptor *db_tab)
+{
+	char sql[1024], *p = sql, *end = sql + sizeof(sql);
+	const struct db_fields *field;
+	int col_count;
+	int i, j, rc, found;
+
+	snprintf(p, end - p, "SELECT * FROM %s", db_tab->name);
+	rc = sqlite3_prepare_v2(priv->db, sql, -1, stmt, NULL);
+	if (rc != SQLITE_OK) {
+		log(TERM, LOG_ERR,
+		    "Failed to query fields from the table %s on %s: error = %d\n",
+		    db_tab->name, SQLITE_RAS_DB, rc);
+		return rc;
+	}
+
+	col_count = sqlite3_column_count(*stmt);
+	for (i = 0; i < db_tab->num_fields; i++) {
+		field = &db_tab->fields[i];
+		found = 0;
+		for (j = 0; j < col_count; j++) {
+			if (!strcmp(field->name,
+			    sqlite3_column_name(*stmt, j))) {
+				found = 1;
+				break;
+			}
+		}
+
+		if (!found) {
+			/* add new field */
+			p += snprintf(p, end - p, "ALTER TABLE %s ADD ",
+				      db_tab->name);
+			p += snprintf(p, end - p,
+				      "%s %s", field->name, field->type);
+#ifdef DEBUG_SQL
+			log(TERM, LOG_INFO, "SQL: %s\n", sql);
+#endif
+			rc = sqlite3_exec(priv->db, sql, NULL, NULL, NULL);
+			if (rc != SQLITE_OK) {
+				log(TERM, LOG_ERR,
+				    "Failed to add new field %s to the table %s on %s: error = %d\n",
+				    field->name, db_tab->name,
+				    SQLITE_RAS_DB, rc);
+				return rc;
+			}
+			p = sql;
+			memset(sql, 0, sizeof(sql));
+		}
+	}
+
+	return rc;
+}
+
+static int ras_mc_prepare_stmt(struct sqlite3_priv *priv,
+			       sqlite3_stmt **stmt,
+			       const struct db_table_descriptor *db_tab)
+{
+	int rc;
+
+	rc = __ras_mc_prepare_stmt(priv, stmt, db_tab);
+	if (rc != SQLITE_OK) {
+		log(TERM, LOG_ERR,
+		    "Failed to prepare insert db at table %s (db %s): error = %s\n",
+		    db_tab->name, SQLITE_RAS_DB, sqlite3_errmsg(priv->db));
+
+		log(TERM, LOG_INFO, "Trying to alter db at table %s (db %s)\n",
+		    db_tab->name, SQLITE_RAS_DB);
+
+		rc = ras_mc_alter_table(priv, stmt, db_tab);
+		if (rc != SQLITE_OK && rc != SQLITE_DONE) {
+			log(TERM, LOG_ERR,
+			    "Failed to alter db at table %s (db %s): error = %s\n",
+			    db_tab->name, SQLITE_RAS_DB,
+			    sqlite3_errmsg(priv->db));
+			stmt = NULL;
+			return rc;
+		}
+
+		rc = __ras_mc_prepare_stmt(priv, stmt, db_tab);
+	}
+
+	return rc;
+}
+
 int ras_mc_add_vendor_table(struct ras_events *ras,
 			    sqlite3_stmt **stmt,
 			    const struct db_table_descriptor *db_tab)
@@ -594,6 +678,18 @@ int ras_mc_add_vendor_table(struct ras_events *ras,
 	rc = ras_mc_create_table(priv, db_tab);
 	if (rc == SQLITE_OK)
 		rc = ras_mc_prepare_stmt(priv, stmt, db_tab);
+
+	return rc;
+}
+
+int ras_mc_finalize_vendor_table(sqlite3_stmt *stmt)
+{
+	int rc;
+
+	rc = sqlite3_finalize(stmt);
+	if (rc != SQLITE_OK)
+		log(TERM, LOG_ERR,
+		    "Failed to finalize sqlite: error = %d\n", rc);
 
 	return rc;
 }
@@ -693,5 +789,113 @@ int ras_mc_event_opendb(unsigned cpu, struct ras_events *ras)
 #endif
 
 		ras->db_priv = priv;
+	return 0;
+}
+
+int ras_mc_event_closedb(unsigned int cpu, struct ras_events *ras)
+{
+	int rc;
+	sqlite3 *db;
+	struct sqlite3_priv *priv = ras->db_priv;
+
+	printf("Calling %s()\n", __func__);
+
+	if (!priv)
+		return -1;
+
+	db = priv->db;
+	if (!db)
+		return -1;
+
+	if (priv->stmt_mc_event) {
+		rc = sqlite3_finalize(priv->stmt_mc_event);
+		if (rc != SQLITE_OK)
+			log(TERM, LOG_ERR,
+			    "cpu %u: Failed to finalize mc_event sqlite: error = %d\n",
+			    cpu, rc);
+	}
+
+#ifdef HAVE_AER
+	if (priv->stmt_aer_event) {
+		rc = sqlite3_finalize(priv->stmt_aer_event);
+		if (rc != SQLITE_OK)
+			log(TERM, LOG_ERR,
+			    "cpu %u: Failed to finalize aer_event sqlite: error = %d\n",
+			    cpu, rc);
+	}
+#endif
+
+#ifdef HAVE_EXTLOG
+	if (priv->stmt_extlog_record) {
+		rc = sqlite3_finalize(priv->stmt_extlog_record);
+		if (rc != SQLITE_OK)
+			log(TERM, LOG_ERR,
+			    "cpu %u: Failed to finalize extlog_record sqlite: error = %d\n",
+			    cpu, rc);
+	}
+#endif
+
+
+#ifdef HAVE_MCE
+	if (priv->stmt_mce_record) {
+		rc = sqlite3_finalize(priv->stmt_mce_record);
+		if (rc != SQLITE_OK)
+			log(TERM, LOG_ERR,
+			    "cpu %u: Failed to finalize mce_record sqlite: error = %d\n",
+			    cpu, rc);
+	}
+#endif
+
+#ifdef HAVE_NON_STANDARD
+	if (priv->stmt_non_standard_record) {
+		rc = sqlite3_finalize(priv->stmt_non_standard_record);
+		if (rc != SQLITE_OK)
+			log(TERM, LOG_ERR,
+			    "cpu %u: Failed to finalize non_standard_record sqlite: error = %d\n",
+			    cpu, rc);
+	}
+#endif
+
+#ifdef HAVE_ARM
+	if (priv->stmt_arm_record) {
+		rc = sqlite3_finalize(priv->stmt_arm_record);
+		if (rc != SQLITE_OK)
+			log(TERM, LOG_ERR,
+			    "cpu %u: Failed to finalize arm_record sqlite: error = %d\n",
+			    cpu, rc);
+	}
+#endif
+
+#ifdef HAVE_DEVLINK
+	if (priv->stmt_devlink_event) {
+		rc = sqlite3_finalize(priv->stmt_devlink_event);
+		if (rc != SQLITE_OK)
+			log(TERM, LOG_ERR,
+			    "cpu %u: Failed to finalize devlink_event sqlite: error = %d\n",
+			    cpu, rc);
+	}
+#endif
+
+#ifdef HAVE_DISKERROR
+	if (priv->stmt_diskerror_event) {
+		rc = sqlite3_finalize(priv->stmt_diskerror_event);
+		if (rc != SQLITE_OK)
+			log(TERM, LOG_ERR,
+			    "cpu %u: Failed to finalize diskerror_event sqlite: error = %d\n",
+			    cpu, rc);
+	}
+#endif
+
+	rc = sqlite3_close_v2(db);
+	if (rc != SQLITE_OK)
+		log(TERM, LOG_ERR,
+		    "cpu %u: Failed to close sqlite: error = %d\n", cpu, rc);
+
+	rc = sqlite3_shutdown();
+	if (rc != SQLITE_OK)
+		log(TERM, LOG_ERR,
+		    "cpu %u: Failed to shutdown sqlite: error = %d\n", cpu, rc);
+	free(priv);
+
 	return 0;
 }

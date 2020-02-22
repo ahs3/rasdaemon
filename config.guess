@@ -276,8 +276,8 @@ case "$UNAME_MACHINE:$UNAME_SYSTEM:$UNAME_RELEASE:$UNAME_VERSION" in
 	echo "$UNAME_MACHINE"-unknown-redox
 	exit ;;
     mips:OSF1:*.*)
-	echo mips-dec-osf1
-	exit ;;
+        echo mips-dec-osf1
+        exit ;;
     alpha:OSF1:*:*)
 	case $UNAME_RELEASE in
 	*4.0)
