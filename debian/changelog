@@ -1,10 +1,14 @@
 rasdaemon (0.6.5-2) UNRELEASED; urgency=medium
 
+  [ dann frazier ]
   * Use CPU feature flag instead of family to detect AMD SMCA support.
   * Add support for new AMD SMCA bank types.  Closes: #956919
   * Cleanup /var/lib/rasdaemon/ras-mc_event.db on purge.  Closes: #956329
   * debian/control: Correct case of Vcs-Git field.
+
+  [ Al Stone ]
   * Thanks to dannf for all the patches.
+  * Update debhelper compat version 
 
  -- dann frazier <dannf@debian.org>  Thu, 16 Apr 2020 12:43:23 -0600
 
