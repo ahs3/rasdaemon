@@ -14,5 +14,6 @@ override_dh_auto_configure:
 
 override_dh_install:
 	dh_install
-	dh_installsystemd misc/rasdaemon.service misc/ras-mc-ctl.service
+	dh_installsystemd --name=rasdaemon rasdaemon.service
+	dh_installsystemd --name=ras-mc-ctl ras-mc-ctl.service
 	rm -rf $(CURDIR)/debian/rasdaemon/usr/include
