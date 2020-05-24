@@ -7,10 +7,12 @@ rasdaemon (0.6.5-2) UNRELEASED; urgency=medium
   * debian/control: Correct case of Vcs-Git field.
 
   [ Al Stone ]
-  * Thanks to dannf for all the patches.
+  * Thanks to dannf for all the patches; all incorporated now.
   * Update debhelper compat version 
+  * Fix uninitialized variable in ras-mc-ctl; used modified version of
+    the original patch. Closes: #958511 
 
- -- dann frazier <dannf@debian.org>  Thu, 16 Apr 2020 12:43:23 -0600
+ -- Al Stone <ahs3@debian.org>  Fri, 21 Feb 2020 18:09:55 -0700
 
 rasdaemon (0.6.5-1) unstable; urgency=medium
 

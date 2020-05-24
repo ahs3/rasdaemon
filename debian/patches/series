@@ -4,3 +4,4 @@ add-man-options.patch
 systemd-requires.patch
 rasdaemon-rename-CPU_NAPLES-cputype.patch
 rasdaemon-add-support-for-new-AMD-SMCA-bank-types.patch
+ras-mc-ctl.patch
