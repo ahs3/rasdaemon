@@ -31,6 +31,9 @@
 /* "have PCIe MCE events collect" */
 #define HAVE_MCE 1
 
+/* "have memory corrected error predictive failure analysis" */
+#define HAVE_MEMORY_CE_PFA 1
+
 /* Define to 1 if you have the <memory.h> header file. */
 #define HAVE_MEMORY_H 1
 
@@ -101,7 +104,7 @@
 #define PACKAGE_NAME "RASdaemon"
 
 /* Define to the full name and version of this package. */
-#define PACKAGE_STRING "RASdaemon 0.6.5"
+#define PACKAGE_STRING "RASdaemon 0.6.6"
 
 /* Define to the one symbol short name of this package. */
 #define PACKAGE_TARNAME "rasdaemon"
@@ -110,7 +113,7 @@
 #define PACKAGE_URL ""
 
 /* Define to the version of this package. */
-#define PACKAGE_VERSION "0.6.5"
+#define PACKAGE_VERSION "0.6.6"
 
 /* rasdaemon db store state dir */
 #define RASSTATEDIR "/usr/local/var/lib/rasdaemon"
@@ -122,4 +125,4 @@
 #define STDC_HEADERS 1
 
 /* Version number of package */
-#define VERSION "0.6.5"
+#define VERSION "0.6.6"

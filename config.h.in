@@ -30,6 +30,9 @@
 /* "have PCIe MCE events collect" */
 #undef HAVE_MCE
 
+/* "have memory corrected error predictive failure analysis" */
+#undef HAVE_MEMORY_CE_PFA
+
 /* Define to 1 if you have the <memory.h> header file. */
 #undef HAVE_MEMORY_H
 
