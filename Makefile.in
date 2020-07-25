@@ -108,6 +108,7 @@ sbin_PROGRAMS = rasdaemon$(EXEEXT)
 @WITH_DISKERROR_TRUE@am__append_8 = ras-diskerror-handler.c
 @WITH_ABRT_REPORT_TRUE@am__append_9 = ras-report.c
 @WITH_HISI_NS_DECODE_TRUE@am__append_10 = non-standard-hisi_hip07.c non-standard-hisi_hip08.c
+@WITH_MEMORY_CE_PFA_TRUE@am__append_11 = rbtree.c ras-page-isolation.c
 subdir = .
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
 am__aclocal_m4_deps = $(top_srcdir)/m4/ac_define_dir.m4 \
@@ -137,7 +138,7 @@ am__rasdaemon_SOURCES_DIST = rasdaemon.c ras-events.c ras-mc-handler.c \
 	mce-intel-skylake-xeon.c mce-amd-k8.c mce-amd-smca.c \
 	ras-extlog-handler.c ras-devlink-handler.c \
 	ras-diskerror-handler.c ras-report.c non-standard-hisi_hip07.c \
-	non-standard-hisi_hip08.c
+	non-standard-hisi_hip08.c rbtree.c ras-page-isolation.c
 @WITH_SQLITE3_TRUE@am__objects_1 = ras-record.$(OBJEXT)
 @WITH_AER_TRUE@am__objects_2 = ras-aer-handler.$(OBJEXT)
 @WITH_NON_STANDARD_TRUE@am__objects_3 =  \
@@ -163,11 +164,14 @@ am__rasdaemon_SOURCES_DIST = rasdaemon.c ras-events.c ras-mc-handler.c \
 @WITH_HISI_NS_DECODE_TRUE@am__objects_10 =  \
 @WITH_HISI_NS_DECODE_TRUE@	non-standard-hisi_hip07.$(OBJEXT) \
 @WITH_HISI_NS_DECODE_TRUE@	non-standard-hisi_hip08.$(OBJEXT)
+@WITH_MEMORY_CE_PFA_TRUE@am__objects_11 = rbtree.$(OBJEXT) \
+@WITH_MEMORY_CE_PFA_TRUE@	ras-page-isolation.$(OBJEXT)
 am_rasdaemon_OBJECTS = rasdaemon.$(OBJEXT) ras-events.$(OBJEXT) \
 	ras-mc-handler.$(OBJEXT) bitfield.$(OBJEXT) $(am__objects_1) \
 	$(am__objects_2) $(am__objects_3) $(am__objects_4) \
 	$(am__objects_5) $(am__objects_6) $(am__objects_7) \
-	$(am__objects_8) $(am__objects_9) $(am__objects_10)
+	$(am__objects_8) $(am__objects_9) $(am__objects_10) \
+	$(am__objects_11)
 rasdaemon_OBJECTS = $(am_rasdaemon_OBJECTS)
 am__DEPENDENCIES_1 =
 rasdaemon_DEPENDENCIES = $(am__DEPENDENCIES_1) libtrace/libtrace.a
@@ -208,8 +212,9 @@ am__depfiles_remade = ./$(DEPDIR)/bitfield.Po \
 	./$(DEPDIR)/ras-extlog-handler.Po \
 	./$(DEPDIR)/ras-mc-handler.Po ./$(DEPDIR)/ras-mce-handler.Po \
 	./$(DEPDIR)/ras-non-standard-handler.Po \
-	./$(DEPDIR)/ras-record.Po ./$(DEPDIR)/ras-report.Po \
-	./$(DEPDIR)/rasdaemon.Po
+	./$(DEPDIR)/ras-page-isolation.Po ./$(DEPDIR)/ras-record.Po \
+	./$(DEPDIR)/ras-report.Po ./$(DEPDIR)/rasdaemon.Po \
+	./$(DEPDIR)/rbtree.Po
 am__mv = mv -f
 COMPILE = $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) \
 	$(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS)
@@ -431,6 +436,7 @@ WITH_DISKERROR = @WITH_DISKERROR@
 WITH_EXTLOG = @WITH_EXTLOG@
 WITH_HISI_NS_DECODE = @WITH_HISI_NS_DECODE@
 WITH_MCE = @WITH_MCE@
+WITH_MEMORY_CE_PFA = @WITH_MEMORY_CE_PFA@
 WITH_NON_STANDARD = @WITH_NON_STANDARD@
 WITH_SQLITE3 = @WITH_SQLITE3@
 abs_builddir = @abs_builddir@
@@ -494,7 +500,7 @@ ACLOCAL_AMFLAGS = -I m4
 SUBDIRS = libtrace util man
 SYSTEMD_SERVICES_IN = misc/rasdaemon.service.in misc/ras-mc-ctl.service.in
 SYSTEMD_SERVICES = $(SYSTEMD_SERVICES_IN:.service.in=.service)
-EXTRA_DIST = $(SYSTEMD_SERVICES_IN)
+EXTRA_DIST = $(SYSTEMD_SERVICES_IN) misc/rasdaemon.env
 
 # This rule is needed because \@sbindir\@ is expanded to \${exec_prefix\}/sbin
 # during ./configure phase, therefore it is not possible to add .service.in
@@ -504,12 +510,12 @@ rasdaemon_SOURCES = rasdaemon.c ras-events.c ras-mc-handler.c \
 	bitfield.c $(am__append_1) $(am__append_2) $(am__append_3) \
 	$(am__append_4) $(am__append_5) $(am__append_6) \
 	$(am__append_7) $(am__append_8) $(am__append_9) \
-	$(am__append_10)
+	$(am__append_10) $(am__append_11)
 rasdaemon_LDADD = -lpthread $(SQLITE3_LIBS) libtrace/libtrace.a
 include_HEADERS = config.h  ras-events.h  ras-logger.h  ras-mc-handler.h \
 		  ras-aer-handler.h ras-mce-handler.h ras-record.h bitfield.h ras-report.h \
 		  ras-extlog-handler.h ras-arm-handler.h ras-non-standard-handler.h \
-		  ras-devlink-handler.h ras-diskerror-handler.h
+		  ras-devlink-handler.h ras-diskerror-handler.h rbtree.h ras-page-isolation.h
 
 all: config.h
 	$(MAKE) $(AM_MAKEFLAGS) all-recursive
@@ -653,9 +659,11 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ras-mc-handler.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ras-mce-handler.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ras-non-standard-handler.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ras-page-isolation.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ras-record.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ras-report.Po@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/rasdaemon.Po@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/rbtree.Po@am__quote@ # am--include-marker
 
 $(am__depfiles_remade):
 	@$(MKDIR_P) $(@D)
@@ -1083,9 +1091,11 @@ distclean: distclean-recursive
 	-rm -f ./$(DEPDIR)/ras-mc-handler.Po
 	-rm -f ./$(DEPDIR)/ras-mce-handler.Po
 	-rm -f ./$(DEPDIR)/ras-non-standard-handler.Po
+	-rm -f ./$(DEPDIR)/ras-page-isolation.Po
 	-rm -f ./$(DEPDIR)/ras-record.Po
 	-rm -f ./$(DEPDIR)/ras-report.Po
 	-rm -f ./$(DEPDIR)/rasdaemon.Po
+	-rm -f ./$(DEPDIR)/rbtree.Po
 	-rm -f Makefile
 distclean-am: clean-am distclean-compile distclean-generic \
 	distclean-hdr distclean-libtool distclean-tags
@@ -1160,9 +1170,11 @@ maintainer-clean: maintainer-clean-recursive
 	-rm -f ./$(DEPDIR)/ras-mc-handler.Po
 	-rm -f ./$(DEPDIR)/ras-mce-handler.Po
 	-rm -f ./$(DEPDIR)/ras-non-standard-handler.Po
+	-rm -f ./$(DEPDIR)/ras-page-isolation.Po
 	-rm -f ./$(DEPDIR)/ras-record.Po
 	-rm -f ./$(DEPDIR)/ras-report.Po
 	-rm -f ./$(DEPDIR)/rasdaemon.Po
+	-rm -f ./$(DEPDIR)/rbtree.Po
 	-rm -f Makefile
 maintainer-clean-am: distclean-am maintainer-clean-generic
 
@@ -1238,6 +1250,7 @@ upload:
 install-data-local:
 	$(install_sh) -d "$(DESTDIR)@RASSTATEDIR@"
 	$(install_sh) -d "$(DESTDIR)@sysconfdir@/ras/dimm_labels.d"
+@WITH_MEMORY_CE_PFA_TRUE@	$(install_sh) @abs_srcdir@/misc/rasdaemon.env "$(DESTDIR)@sysconfdir@/sysconfig/rasdaemon"
 
 # Tell versions [3.59,3.63) of GNU make to not export all variables.
 # Otherwise a system limit (for SysV at least) may be exceeded.

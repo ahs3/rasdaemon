@@ -39,6 +39,7 @@
 #include "ras-diskerror-handler.h"
 #include "ras-record.h"
 #include "ras-logger.h"
+#include "ras-page-isolation.h"
 
 /*
  * Polling time, if read() doesn't block. Currently, trace_pipe_raw never
@@ -409,8 +410,10 @@ static int read_ras_event_all_cpus(struct pthread_data *pdata,
 	}
 
 	log(TERM, LOG_INFO, "Listening to events for cpus 0 to %d\n", n_cpus - 1);
-	if (pdata[0].ras->record_events)
-		ras_mc_event_opendb(pdata[0].cpu, pdata[0].ras);
+	if (pdata[0].ras->record_events) {
+		if (ras_mc_event_opendb(pdata[0].cpu, pdata[0].ras))
+			goto error;
+	}
 
 	do {
 		ready = poll(fds, (n_cpus + 1), -1);
@@ -494,10 +497,8 @@ static int read_ras_event_all_cpus(struct pthread_data *pdata,
 	    "Old kernel detected. Stop listening and fall back to pthread way.\n");
 
 cleanup:
-	if (pdata[0].ras->record_events) {
-		unregister_ns_dec_tab();
+	if (pdata[0].ras->record_events)
 		ras_mc_event_closedb(pdata[0].cpu, pdata[0].ras);
-	}
 
 error:
 	kbuffer_free(kbuf);
@@ -584,15 +585,20 @@ static void *handle_ras_events_cpu(void *priv)
 	}
 
 	log(TERM, LOG_INFO, "Listening to events on cpu %d\n", pdata->cpu);
-	if (pdata->ras->record_events)
-		ras_mc_event_opendb(pdata->cpu, pdata->ras);
+	if (pdata->ras->record_events) {
+		if (ras_mc_event_opendb(pdata->cpu, pdata->ras)) {
+			log(TERM, LOG_ERR, "Can't open database\n");
+			close(fd);
+			kbuffer_free(kbuf);
+			free(page);
+			return 0;
+		}
+	}
 
 	read_ras_event(fd, pdata, kbuf, page);
 
-	if (pdata->ras->record_events) {
-		unregister_ns_dec_tab();
+	if (pdata->ras->record_events)
 		ras_mc_event_closedb(pdata->cpu, pdata->ras);
-	}
 
 	close(fd);
 	kbuffer_free(kbuf);
@@ -797,6 +803,11 @@ int handle_ras_events(int record_events)
 	ras->pevent = pevent;
 	ras->page_size = page_size;
 	ras->record_events = record_events;
+
+#ifdef HAVE_MEMORY_CE_PFA
+	/* FIXME: enable memory isolation unconditionally */
+	ras_page_account_init();
+#endif
 
 	rc = add_event_handler(ras, pevent, page_size, "ras", "mc_event",
 			       ras_mc_event_handler, NULL, MC_EVENT);

@@ -2,7 +2,7 @@ ACLOCAL_AMFLAGS=-I m4
 SUBDIRS = libtrace util man
 SYSTEMD_SERVICES_IN = misc/rasdaemon.service.in misc/ras-mc-ctl.service.in
 SYSTEMD_SERVICES = $(SYSTEMD_SERVICES_IN:.service.in=.service)
-EXTRA_DIST = $(SYSTEMD_SERVICES_IN)
+EXTRA_DIST = $(SYSTEMD_SERVICES_IN) misc/rasdaemon.env
 
 # This rule is needed because \@sbindir\@ is expanded to \${exec_prefix\}/sbin
 # during ./configure phase, therefore it is not possible to add .service.in
@@ -54,12 +54,15 @@ endif
 if WITH_HISI_NS_DECODE
    rasdaemon_SOURCES += non-standard-hisi_hip07.c non-standard-hisi_hip08.c
 endif
+if WITH_MEMORY_CE_PFA
+   rasdaemon_SOURCES += rbtree.c ras-page-isolation.c
+endif
 rasdaemon_LDADD = -lpthread $(SQLITE3_LIBS) libtrace/libtrace.a
 
 include_HEADERS = config.h  ras-events.h  ras-logger.h  ras-mc-handler.h \
 		  ras-aer-handler.h ras-mce-handler.h ras-record.h bitfield.h ras-report.h \
 		  ras-extlog-handler.h ras-arm-handler.h ras-non-standard-handler.h \
-		  ras-devlink-handler.h ras-diskerror-handler.h
+		  ras-devlink-handler.h ras-diskerror-handler.h rbtree.h ras-page-isolation.h
 
 # This rule can't be called with more than one Makefile job (like make -j8)
 # I can't figure out a way to fix that
@@ -87,3 +90,6 @@ upload:
 install-data-local:
 	$(install_sh) -d "$(DESTDIR)@RASSTATEDIR@"
 	$(install_sh) -d "$(DESTDIR)@sysconfdir@/ras/dimm_labels.d"
+if WITH_MEMORY_CE_PFA
+	$(install_sh) @abs_srcdir@/misc/rasdaemon.env "$(DESTDIR)@sysconfdir@/sysconfig/rasdaemon"
+endif
