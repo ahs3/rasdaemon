@@ -1,7 +1,8 @@
-diff -Naur rasdaemon/configure.ac rasdaemon-fixes/configure.ac
---- rasdaemon/configure.ac	2019-10-22 20:59:49.235536881 -0600
-+++ rasdaemon-fixes/configure.ac	2019-10-22 21:03:15.525819156 -0600
-@@ -15,7 +15,7 @@
+Index: rasdaemon-0.6.6/configure.ac
+===================================================================
+--- rasdaemon-0.6.6.orig/configure.ac
++++ rasdaemon-0.6.6/configure.ac
+@@ -15,7 +15,7 @@ AC_CONFIG_FILES([
  	libtrace/Makefile
  	man/Makefile
  	man/ras-mc-ctl.8
@@ -10,17 +11,19 @@ diff -Naur rasdaemon/configure.ac rasdaemon-fixes/configure.ac
  	misc/rasdaemon.spec
  	util/Makefile
  	util/ras-mc-ctl
-diff -Naur rasdaemon/man/Makefile.am rasdaemon-fixes/man/Makefile.am
---- rasdaemon/man/Makefile.am	2017-11-27 18:24:04.767889528 -0700
-+++ rasdaemon-fixes/man/Makefile.am	2019-10-22 21:01:23.638751224 -0600
+Index: rasdaemon-0.6.6/man/Makefile.am
+===================================================================
+--- rasdaemon-0.6.6.orig/man/Makefile.am
++++ rasdaemon-0.6.6/man/Makefile.am
 @@ -1,2 +1,2 @@
 -man_MANS = ras-mc-ctl.8 rasdaemon.1
 +man_MANS = ras-mc-ctl.8 rasdaemon.8
  
-diff -Naur rasdaemon/man/rasdaemon.1.in rasdaemon-fixes/man/rasdaemon.1.in
---- rasdaemon/man/rasdaemon.1.in	2019-10-22 20:59:49.235536881 -0600
-+++ rasdaemon-fixes/man/rasdaemon.1.in	1969-12-31 17:00:00.000000000 -0700
-@@ -1,67 +0,0 @@
+Index: rasdaemon-0.6.6/man/rasdaemon.1.in
+===================================================================
+--- rasdaemon-0.6.6.orig/man/rasdaemon.1.in
++++ /dev/null
+@@ -1,74 +0,0 @@
 -.\"****************************************************************************
 -.\" $Id$
 -.\"****************************************************************************
@@ -85,13 +88,21 @@ diff -Naur rasdaemon/man/rasdaemon.1.in rasdaemon-fixes/man/rasdaemon.1.in
 -.BI "--version"
 -Print the program version and exit.
 -
+-.SH CONFIG FILE
+-
+-The \fBrasdaemon\fR program supports a config file to set rasdaemon systemd service
+-environment variables. By default the config file is read from /etc/sysconfig/rasdaemon.
+-
+-The general format is environmentname=value.
+-
 -.SH SEE ALSO
 -\fBras-mc-ctl\fR(8)
 -
-diff -Naur rasdaemon/man/rasdaemon.8.in rasdaemon-fixes/man/rasdaemon.8.in
---- rasdaemon/man/rasdaemon.8.in	1969-12-31 17:00:00.000000000 -0700
-+++ rasdaemon-fixes/man/rasdaemon.8.in	2019-10-22 21:00:21.495268484 -0600
-@@ -0,0 +1,67 @@
+Index: rasdaemon-0.6.6/man/rasdaemon.8.in
+===================================================================
+--- /dev/null
++++ rasdaemon-0.6.6/man/rasdaemon.8.in
+@@ -0,0 +1,74 @@
 +.\"****************************************************************************
 +.\" $Id$
 +.\"****************************************************************************
@@ -155,6 +166,13 @@ diff -Naur rasdaemon/man/rasdaemon.8.in rasdaemon-fixes/man/rasdaemon.8.in
 +.TP
 +.BI "--version"
 +Print the program version and exit.
++
++.SH CONFIG FILE
++
++The \fBrasdaemon\fR program supports a config file to set rasdaemon systemd service
++environment variables. By default the config file is read from /etc/sysconfig/rasdaemon.
++
++The general format is environmentname=value.
 +
 +.SH SEE ALSO
 +\fBras-mc-ctl\fR(8)

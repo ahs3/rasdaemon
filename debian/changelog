@@ -1,3 +1,13 @@
+rasdaemon (0.6.6-1) UNRELEASED; urgency=medium
+
+  * Update to 0.6.6 upstream source 
+  * Clean up existing patches, removing those already applied
+  * Includes upstream fix to allow compilation with GCC-10.  Closes: #957750
+  * Add patch from upstream to display PCIe device name from PCIe AER.
+    Closes: #965962
+
+ -- Al Stone <ahs3@debian.org>  Fri, 24 Jul 2020 18:33:53 -0600
+
 rasdaemon (0.6.5-2) unstable; urgency=medium
 
   [ dann frazier ]
