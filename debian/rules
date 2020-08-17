@@ -10,7 +10,8 @@ include /usr/share/dpkg/default.mk
 override_dh_auto_configure:
 	dh_auto_configure -- \
 	--enable-mce --enable-aer --enable-sqlite3 --enable-extlog \
-	--enable-abrt-report --enable-arm
+	--enable-abrt-report --enable-arm \
+	--with-sysconfdefdir=/etc/default
 
 override_dh_install:
 	dh_install
