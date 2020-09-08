@@ -1,6 +1,7 @@
 rasdaemon (0.6.6-2) UNRELEASED; urgency=medium
 
   * Include merge request to fix systemctl start up.  Closes: #966698 
+  * Fix lintian error: no build-depend for dh-exec
 
  -- Al Stone <ahs3@debian.org>  Mon, 07 Sep 2020 20:21:06 -0600
 
