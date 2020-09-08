@@ -1,0 +1,79 @@
+commit acd80bfd51fb16e53993ed3d9f6b658dba519272
+Author: Antonio Russo <antonio.e.russo@gmail.com>
+Date:   Mon Aug 17 22:29:51 2020 -0600
+
+    Create SYSCONFDEFDIR configure parameter
+    
+    Provide downstream packagers with a tunable describing the location of
+    the file containing environment variables to pass to the startup script.
+    
+    Defaults to the existing value, /etc/sysconfig.
+    
+    Signed-off-by: Antonio Russo <antonio.e.russo@gmail.com>
+
+Forwarded: https://github.com/mchehab/rasdaemon/pull/22
+diff --git a/Makefile.am b/Makefile.am
+index f4822b9..8464142 100644
+--- a/Makefile.am
++++ b/Makefile.am
+@@ -9,7 +9,7 @@ EXTRA_DIST = $(SYSTEMD_SERVICES_IN) misc/rasdaemon.env
+ # files to AC_CONFIG_FILES in configure.ac
+ SUFFIXES = .service.in .service
+ .service.in.service:
+-	sed -e s,\@sbindir\@,$(sbindir),g $< > $@
++	sed -e s,\@sbindir\@,$(sbindir),g -e s,\@SYSCONFDEFDIR\@,@SYSCONFDEFDIR@,g $< > $@
+ 
+ # This rule is needed because the service files must be generated on target
+ # system after ./configure phase
+@@ -91,5 +91,5 @@ install-data-local:
+ 	$(install_sh) -d "$(DESTDIR)@RASSTATEDIR@"
+ 	$(install_sh) -d "$(DESTDIR)@sysconfdir@/ras/dimm_labels.d"
+ if WITH_MEMORY_CE_PFA
+-	$(install_sh) @abs_srcdir@/misc/rasdaemon.env "$(DESTDIR)@sysconfdir@/sysconfig/rasdaemon"
++	$(install_sh) @abs_srcdir@/misc/rasdaemon.env "$(DESTDIR)@SYSCONFDEFDIR@/rasdaemon"
+ endif
+diff --git a/configure.ac b/configure.ac
+index 2d6c59c..318b1e6 100644
+--- a/configure.ac
++++ b/configure.ac
+@@ -149,6 +149,12 @@ AC_SUBST([rasstatedir], [$localstatedir/lib/rasdaemon])
+ AC_DEFINE_DIR([RASSTATEDIR], [rasstatedir], [rasdaemon db store state dir])
+ AC_SUBST([RASSTATEDIR])
+ 
++AC_ARG_WITH(sysconfdefdir,
++    AC_HELP_STRING([--with-sysconfdefdir=DIR], [rasdaemon environment file dir]),
++    [SYSCONFDEFDIR=$withval],
++    [/etc/sysconfig])
++AC_SUBST([SYSCONFDEFDIR])
++
+ AC_DEFINE([RAS_DB_FNAME], ["ras-mc_event.db"], [ras events database])
+ AC_SUBST([RAS_DB_FNAME], ["ras-mc_event.db"])
+ 
+diff --git a/misc/rasdaemon.service.in b/misc/rasdaemon.service.in
+index e73a08a..4ef3d2c 100644
+--- a/misc/rasdaemon.service.in
++++ b/misc/rasdaemon.service.in
+@@ -3,7 +3,7 @@ Description=RAS daemon to log the RAS events
+ After=syslog.target
+ 
+ [Service]
+-EnvironmentFile=/etc/sysconfig/rasdaemon
++EnvironmentFile=@SYSCONFDEFDIR@/rasdaemon
+ ExecStart=@sbindir@/rasdaemon -f -r
+ ExecStartPost=@sbindir@/rasdaemon --enable
+ ExecStop=@sbindir@/rasdaemon --disable
+diff --git a/misc/rasdaemon.spec.in b/misc/rasdaemon.spec.in
+index b2572f5..01e69fc 100644
+--- a/misc/rasdaemon.spec.in
++++ b/misc/rasdaemon.spec.in
+@@ -56,8 +56,8 @@ rm INSTALL %{buildroot}/usr/include/*.h
+ %{_unitdir}/*.service
+ %{_sharedstatedir}/rasdaemon
+ %{_sysconfdir}/ras/dimm_labels.d
+-%{_sysconfdir}/sysconfig/%{name}
+-%config(noreplace) %{_sysconfdir}/sysconfig/%{name}
++@SYSCONFDEFDIR@/%{name}
++%config(noreplace) @SYSCONFDIFDIR@/%{name}
+ 
+ %changelog
+ 

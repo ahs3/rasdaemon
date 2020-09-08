@@ -1,2 +1,4 @@
+#!/usr/bin/dh-exec
 misc/rasdaemon.service	/lib/systemd/system
 misc/ras-mc-ctl.service	/lib/systemd/system
+misc/rasdaemon.env => /etc/default/rasdaemon

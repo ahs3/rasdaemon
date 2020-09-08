@@ -1,3 +1,4 @@
+rasdaemon-env-defaults.patch
 mv-manpage.patch
 systemd-targets.patch
 add-man-options.patch
